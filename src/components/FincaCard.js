@@ -1,3 +1,4 @@
+// src/components/FincaCard.js
 import React from "react";
 import styled from "styled-components";
 
@@ -13,7 +14,6 @@ const CardContainer = styled.div`
   width: 220px;
   box-shadow: 2px 4px 10px rgba(0, 0, 0, 0.1);
   transition: transform 0.2s;
-  margin: 10px;
 
   &:hover {
     transform: scale(1.05);
@@ -23,7 +23,7 @@ const CardContainer = styled.div`
 const CardImage = styled.div`
   width: 180px;
   height: 180px;
-  background-image: url(${(props) => props.image || "https://via.placeholder.com/180"}); /* Imagen por defecto */
+  background-image: url(${(props) => props.image});
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
@@ -34,7 +34,6 @@ const CardText = styled.p`
   font-size: 16px;
   font-weight: bold;
   text-align: center;
-  color: #333;
 `;
 
 const FincaCard = ({ name, image }) => {

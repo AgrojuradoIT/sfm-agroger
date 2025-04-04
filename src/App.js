@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import Header from "./components/Header";
-import FincaList from "./pages/FincaList";
+import FincaList from "./components/FincaList";
 import Sidebar from "./components/Sidebar";
 import Login from "./pages/Login";
 
@@ -29,9 +29,9 @@ function App() {
       ) : (
         <>
           <Sidebar isOpen={sidebarOpen} />
-          <div style={{ flex: 1, marginLeft: sidebarOpen ? "200px" : "60px", transition: "margin-left 0.3s ease" }}>
+          <div style={{ flex: 1, transition: "margin-left 0.3s ease", width: "100%" }}>
             <Header onLogout={handleLogout} toggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
-            <div style={{ padding: "20px" }}>
+            <div style={{ marginTop: "80px", padding: "20px" }}>
               <FincaList />
             </div>
           </div>

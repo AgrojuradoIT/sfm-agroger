@@ -36,12 +36,14 @@ const Login = ({ onLogin }) => {
             placeholder="Usuario"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
+            required
           />
           <Input
             type="password"
             placeholder="Contraseña"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            required
           />
           <Button type="submit">Iniciar sesión</Button>
         </form>
