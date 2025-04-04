@@ -1,6 +1,7 @@
 // src/components/FincaCard.js
 import React from "react";
 import styled from "styled-components";
+import { useNavigate } from "react-router-dom";
 
 const CardContainer = styled.div`
   display: flex;
@@ -13,20 +14,20 @@ const CardContainer = styled.div`
   padding: 15px;
   width: 220px;
   box-shadow: 2px 4px 10px rgba(0, 0, 0, 0.1);
-  transition: transform 0.2s;
+  transition: transform 0.2s, box-shadow 0.2s;
+  cursor: pointer;
 
   &:hover {
     transform: scale(1.05);
+    box-shadow: 2px 6px 15px rgba(0, 0, 0, 0.15);
   }
 `;
 
-const CardImage = styled.div`
+const CardImage = styled.img`
   width: 180px;
   height: 180px;
-  background-image: url(${(props) => props.image});
-  background-size: contain;
-  background-repeat: no-repeat;
-  background-position: center;
+  object-fit: contain;
+  border-radius: 8px;
 `;
 
 const CardText = styled.p`
@@ -34,12 +35,20 @@ const CardText = styled.p`
   font-size: 16px;
   font-weight: bold;
   text-align: center;
+  color: #333;
 `;
 
-const FincaCard = ({ name, image }) => {
+const FincaCard = ({ id, name, image }) => {
+  const navigate = useNavigate();
+
+  const handleClick = () => {
+    console.log('Navegando a:', `/fincas/${id}`);
+    navigate(`/fincas/${id}`);
+  };
+
   return (
-    <CardContainer>
-      <CardImage image={image} />
+    <CardContainer onClick={handleClick}>
+      <CardImage src={image} alt={name} />
       <CardText>{name}</CardText>
     </CardContainer>
   );

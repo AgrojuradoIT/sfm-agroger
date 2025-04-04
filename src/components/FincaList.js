@@ -18,17 +18,22 @@ const ListContainer = styled.div`
 
 // Datos de las fincas con sus respectivas imágenes
 const fincas = [
-  { id: 1, name: "Finca A", image: fincaAImage },
-  { id: 2, name: "Finca B", image: fincaBImage },
-  { id: 3, name: "Finca C", image: fincaCImage },
-  { id: 4, name: "Finca D", image: fincaDImage }
+  { id: 'a', name: "Finca A", image: fincaAImage },
+  { id: 'b', name: "Finca B", image: fincaBImage },
+  { id: 'c', name: "Finca C", image: fincaCImage },
+  { id: 'd', name: "Finca D", image: fincaDImage }
 ];
 
 const FincaList = () => {
   return (
     <ListContainer>
       {fincas.map((finca) => (
-        <FincaCard key={finca.id} name={finca.name} image={finca.image} />
+        <FincaCard 
+          key={finca.id}
+          id={finca.id}
+          name={finca.name} 
+          image={finca.image} 
+        />
       ))}
     </ListContainer>
   );
