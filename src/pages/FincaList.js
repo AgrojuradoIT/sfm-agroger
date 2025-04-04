@@ -1,4 +1,3 @@
-// src/components/FincaList.js
 import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import FincaCard from "../components/FincaCard";
@@ -25,15 +24,28 @@ const fincaImages = {
 
 const FincaList = ({ onSync }) => {
   const [fincas, setFincas] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const loadFincas = () => {
-    const data = fetchFincas();
-    setFincas(data);
+  const loadFincas = async () => {
+    try {
+      setLoading(true);
+      const data = await fetchFincas(); // Asegúrate de que fetchFincas sea asíncrona
+      setFincas(data);
+    } catch (error) {
+      console.error("Error loading fincas:", error);
+      setFincas([]); // O manejar el error de otra forma
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
     loadFincas();
   }, []);
+
+  if (loading) {
+    return <div>Cargando fincas...</div>; // Indicador de carga
+  }
 
   return (
     <ListContainer>
@@ -45,4 +57,3 @@ const FincaList = ({ onSync }) => {
 };
 
 export default FincaList;
-

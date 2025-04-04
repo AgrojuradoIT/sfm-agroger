@@ -29,9 +29,9 @@ function App() {
       ) : (
         <>
           <Sidebar isOpen={sidebarOpen} />
-          <div style={{ flex: 1, transition: "margin-left 0.3s ease", width: "100%" }}>
+          <div style={{ flex: 1, marginLeft: sidebarOpen ? "200px" : "60px", transition: "margin-left 0.3s ease" }}>
             <Header onLogout={handleLogout} toggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
-            <div style={{ marginTop: "80px", padding: "20px" }}>
+            <div style={{ padding: "20px" }}>
               <FincaList />
             </div>
           </div>
