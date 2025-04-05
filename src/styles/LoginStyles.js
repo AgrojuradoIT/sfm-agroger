@@ -49,7 +49,7 @@ export const Input = styled.input`
   margin: 10px 0;
   border: 1px solid #ccc;
   border-radius: 5px;
-  box-sizing: border-box; /* Asegura que el padding y el border no aumenten el ancho */
+  box-sizing: border-box; 
 `;
 
 export const Button = styled.button`
@@ -62,7 +62,7 @@ export const Button = styled.button`
   cursor: pointer;
   margin-top: 10px;
   font-size: 16px;
-  box-sizing: border-box; /* Asegura que el padding no aumente el ancho */
+  box-sizing: border-box; 
 
   &:hover {
     background-color: #218838;

@@ -10,7 +10,7 @@ const Navigation = () => {
     const pathSegments = location.pathname.split('/').filter(Boolean);
     let currentPath = '';
     
-    // Si estamos en la ruta raíz, solo mostramos "Menu"
+    
     if (pathSegments.length === 0) {
       return (
         <BreadcrumbContainer>
@@ -26,7 +26,7 @@ const Navigation = () => {
           currentPath += `/${segment}`;
           const isLast = index === pathSegments.length - 1;
           
-          // Personalización para mostrar nombres más amigables
+          
           let title = segment;
           if (segment === 'fincas') {
             title = 'Fincas';

@@ -10,8 +10,8 @@ export const SidebarContainer = styled.div`
   flex-direction: column;
   align-items: ${(props) => (props.isOpen ? "flex-start" : "center")};
   padding-top: 0;
-  box-shadow: 2px 0 5px rgba(0,0,0,0.05);
-  border-right: 1px solid #eaeaea;
+  box-shadow: 2px 0 5px rgba(23, 22, 22, 0.05);
+  border-right: 1px solidrgb(241, 237, 237);
   overflow-y: auto;
   overflow-x: hidden;
   flex-shrink: 0;
