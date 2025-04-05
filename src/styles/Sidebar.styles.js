@@ -3,7 +3,7 @@ import styled from "styled-components";
 export const SidebarContainer = styled.div`
   width: ${(props) => (props.isOpen ? "200px" : "60px")};
   height: calc(100vh - 60px);
-  background-color:rgb(255, 255, 255);
+  background-color: rgb(255, 255, 255);
   color: #333;
   transition: width 0.3s;
   display: flex;
@@ -11,6 +11,7 @@ export const SidebarContainer = styled.div`
   align-items: ${(props) => (props.isOpen ? "flex-start" : "center")};
   padding-top: 0;
   box-shadow: 2px 0 5px rgba(0,0,0,0.05);
+  border-right: 1px solid #eaeaea;
   overflow-y: auto;
   overflow-x: hidden;
   flex-shrink: 0;

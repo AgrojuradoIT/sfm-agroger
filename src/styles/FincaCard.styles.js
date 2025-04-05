@@ -5,54 +5,64 @@ export const CardContainer = styled.div`
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background-color: #fff;
-  border: 1px solid #ddd;
-  border-radius: 8px;
+  background-color: white;
+  border-radius: 16px;
   padding: 15px;
-  width: 100%;
-  max-width: 200px;
+  width: 95%;
+  max-width: 250px;
   height: 240px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  transition: transform 0.2s;
+  box-shadow: 6px 6px 12px rgba(0, 0, 0, 0.07), 
+              -6px -6px 12px rgba(255, 255, 255, 0.8);
+  transition: all 0.3s;
   cursor: pointer;
   position: relative;
   margin: 0 auto;
 
   &:hover {
-    transform: scale(1.02);
+    box-shadow: 8px 8px 16px rgba(0, 0, 0, 0.07), 
+                -8px -8px 16px rgba(255, 255, 255, 0.8);
+    transform: translateY(-5px);
+  }
+  
+  &:active {
+    box-shadow: inset 4px 4px 8px rgba(0, 0, 0, 0.07), 
+                inset -4px -4px 8px rgba(255, 255, 255, 0.8);
+    transform: translateY(0);
   }
 
   @media (max-width: 1200px) {
-    max-width: 180px;
-    height: 230px;
-  }
-
-  @media (max-width: 992px) {
-    max-width: 160px;
+    max-width: 220px;
     height: 220px;
   }
 
+  @media (max-width: 992px) {
+    max-width: 200px;
+    height: 200px;
+  }
+
   @media (max-width: 768px) {
-    max-width: 100%;
-    height: 210px;
+    max-width: 180px;
+    height: 180px;
   }
 `;
 
 export const CardImage = styled.img`
   width: 80%;
-  height: 70%;
+  height: 75%;
   object-fit: contain;
-  margin-bottom: 35px;
+  margin-bottom: 25px;
+  filter: drop-shadow(2px 2px 3px rgba(0, 0, 0, 0.2));
 `;
 
 export const CardText = styled.p`
   width: 100%;
   padding: 8px 0;
   margin: 0;
-  font-size: 14px;
-  font-weight: 500;
+  font-size: 16px;
+  font-weight: 600;
   text-align: center;
   color: #333;
   position: absolute;
-  bottom: 10px;
+  bottom: 15px;
+  text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.7);
 `;
