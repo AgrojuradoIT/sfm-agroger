@@ -37,7 +37,7 @@ const Header = ({ onLogout, toggleSidebar }) => {
           <FaBars />
         </MenuIcon>
         <LogoImage src={logo} alt="SMF AGROGER Logo" />
-        <span>SMF AGROGER</span>
+        <span>SFM AGROGER</span>
       </Logo>
       
       <SearchBar>

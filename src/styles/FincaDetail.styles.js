@@ -13,7 +13,7 @@ export const MainContainer = styled.div`
   box-sizing: border-box;
 `;
 
-// Panel Negro (izquierda) - Filtro por fechas
+// Filtro por fechas
 export const FilterPanel = styled.div`
   width: 180px;
   min-width: 160px;
@@ -32,7 +32,7 @@ export const FilterPanel = styled.div`
   }
 `;
 
-// Panel Amarillo (centro) - Listado de evaluaciones por operario
+// Listado de evaluaciones por operario
 export const EvaluationsPanel = styled.div`
   width: 280px;
   min-width: 250px;
@@ -48,7 +48,7 @@ export const EvaluationsPanel = styled.div`
   }
 `;
 
-// Panel Azul (derecha) - Detalle de la evaluación seleccionada
+// Detalle de la evaluación seleccionada
 export const DetailPanel = styled.div`
   flex: 1;
   background-color: white;
@@ -58,12 +58,22 @@ export const DetailPanel = styled.div`
   box-sizing: border-box;
 `;
 
-// Estilos para el panel de filtros (negro)
+// Estilos para el panel de filtros 
 export const AllButton = styled.div`
   padding: 10px 15px;
   font-weight: bold;
   border-bottom: 1px solid #eee;
-  background-color: #f9f9f9;
+  background-color: ${props => props.selected ? '#f2f2f2' : '#f9f9f9'};
+  color: ${props => props.selected ? '#333' : 'inherit'};
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  border-left: ${props => props.selected ? '4px solid #d9d9d9' : '0'};
+  box-shadow: ${props => props.selected ? '0 2px 4px rgba(0,0,0,0.05)' : 'none'};
+  
+  &:hover {
+    background-color: ${props => props.selected ? '#e8e8e8' : '#f0f0f0'};
+  }
 `;
 
 export const YearSection = styled.div`

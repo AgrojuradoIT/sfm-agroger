@@ -545,6 +545,11 @@ const FincaDetail = () => {
     evaluacionesPorFecha.filter(e => e.evaluador === selectedOperator) : 
     [];
 
+  // Todas las evaluaciones del operador seleccionado (sin filtro de fecha)
+  const todasEvaluacionesDelOperador = selectedOperator ?
+    evaluacionesData.filter(e => e.evaluador === selectedOperator) :
+    [];
+
   const toggleYearExpand = (year) => {
     setExpandedYears(prev => ({...prev, [year]: !prev[year]}));
     setSelectedYear(year);
@@ -585,6 +590,16 @@ const FincaDetail = () => {
     navigate('/');
   };
 
+  // Función para mostrar todos los operarios
+  const showAllOperators = () => {
+    setSelectedDate(null);
+    setSelectedYear(null);
+    setSelectedOperator(null);
+    setSelectedEvaluation(null);
+    // Colapsar todos los años
+    setExpandedYears({});
+  };
+
   return (
     <>
       <Navigation>
@@ -608,7 +623,12 @@ const FincaDetail = () => {
       <div style={{ display: 'flex', width: '100%', overflow: 'hidden', boxSizing: 'border-box' }}>
         {/* Sidebar Negro (izquierda) - Filtro por fechas */}
         <FilterPanel>
-          <AllButton>All</AllButton>
+          <AllButton 
+            onClick={showAllOperators} 
+            selected={!selectedYear && !selectedDate}
+          >
+            All
+          </AllButton>
           
           {Object.keys(evaluacionesPorAño).sort((a, b) => b - a).map(año => (
             <div key={año}>
@@ -685,11 +705,76 @@ const FincaDetail = () => {
                   </>
                 )}
               </>
-            ) : (
-              // Si no hay fecha seleccionada, mostrar un mensaje
+            ) : selectedYear ? (
+              // Si no hay fecha pero hay año seleccionado, mostrar mensaje de selección
               <div style={{ padding: '15px', textAlign: 'center', color: '#666', fontSize: '13px' }}>
                 Selecciona una fecha para ver las evaluaciones
               </div>
+            ) : (
+              // Si no hay fecha ni año seleccionado (All), mostrar todos los operarios
+              <>
+                {!selectedOperator ? (
+                  // Mostrar lista de todos los operarios
+                  <>
+                    <div style={{ 
+                      padding: '15px', 
+                      textAlign: 'center', 
+                      fontWeight: 'bold', 
+                      borderBottom: '1px solid #eee',
+                      backgroundColor: '#f2f2f2',
+                      color: '#333'
+                    }}>
+                      Vista Global: Todos los operarios
+                    </div>
+                    
+                    {Object.keys(agruparPorEvaluador(evaluacionesData)).map(operador => (
+                      <div key={operador}>
+                        <OperatorHeader onClick={() => selectOperator(operador)}>
+                          <span className="operator-name">{operador}</span>
+                          <span className="operator-count">
+                            {evaluacionesData.filter(e => e.evaluador === operador).length}
+                          </span>
+                        </OperatorHeader>
+                      </div>
+                    ))}
+                  </>
+                ) : (
+                  // Mostrar evaluaciones del operario seleccionado
+                  <>
+                    <OperatorHeader onClick={() => selectOperator(selectedOperator)} style={{ cursor: 'pointer' }}>
+                      <span className="operator-name">{selectedOperator}</span>
+                      <span className="operator-count">{todasEvaluacionesDelOperador.length}</span>
+                    </OperatorHeader>
+                    
+                    {todasEvaluacionesDelOperador
+                      .sort((a, b) => {
+                        // Ordenar por fecha descendente
+                        const [diaA, mesA, añoA] = a.fecha.split('/').map(Number);
+                        const [diaB, mesB, añoB] = b.fecha.split('/').map(Number);
+                        if (añoA !== añoB) return añoB - añoA;
+                        if (mesA !== mesB) return mesB - mesA;
+                        return diaB - diaA;
+                      })
+                      .map(evaluacion => (
+                        <EvaluationItem 
+                          key={evaluacion.id}
+                          selected={selectedEvaluation && selectedEvaluation.id === evaluacion.id}
+                          onClick={() => selectEvaluation(evaluacion)}
+                        >
+                          <EvaluationDetails>
+                            <div className="section">
+                              Sección {evaluacion.seccion || 'N/A'}
+                            </div>
+                            <div className="date">{evaluacion.fecha}</div>
+                          </EvaluationDetails>
+                          <EvaluationPercentage value={evaluacion.porcentaje}>
+                            {evaluacion.porcentaje}
+                          </EvaluationPercentage>
+                        </EvaluationItem>
+                      ))}
+                  </>
+                )}
+              </>
             )}
           </EvaluationsPanel>
   
