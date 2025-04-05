@@ -1,33 +1,33 @@
 import styled from 'styled-components';
 
 export const NavContainer = styled.nav`
-  background-color: #f8f9fa;
-  padding: 1rem;
+  background-color: #fff;
+  padding: 0.7rem 1rem;
   border-bottom: 1px solid #dee2e6;
 `;
 
 export const BreadcrumbContainer = styled.div`
-  color: #6c757d;
-  font-size: 0.95rem;
   display: flex;
   align-items: center;
+  font-size: 1rem;
 
-  a {
-    color: #28a745;
+  a, span.current {
+    color: #333;
     text-decoration: none;
+    font-weight: normal;
     
     &:hover {
-      text-decoration: underline;
+      text-decoration: none;
     }
+  }
+
+  span.current {
+    color:rgb(252, 252, 252);
+    font-weight: 500;
   }
 
   span.separator {
     margin: 0 0.5rem;
-    color: #adb5bd;
-  }
-
-  span.current {
-    color: #495057;
-    font-weight: 500;
+    color: #333;
   }
 `; 

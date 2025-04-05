@@ -36,11 +36,12 @@ function App() {
             <div style={{ flex: 1, transition: "margin-left 0.3s ease", width: "100%" }}>
               <Header onLogout={handleLogout} toggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
               <Navigation />
-              <div style={{ marginTop: "20px", padding: "20px" }}>
+              <div style={{ height: "calc(100vh - 110px)", overflow: "auto" }}>
                 <Routes>
                   <Route path="/" element={<Navigate to="/fincas" />} />
                   <Route path="/fincas" element={<FincaList />} />
                   <Route path="/fincas/:id" element={<FincaDetail />} />
+                  <Route path="/evaluacion-polen/:id" element={<FincaDetail />} />
                   <Route path="/informes" element={<div>Página de Informes</div>} />
                   <Route path="/configuracion" element={<div>Página de Configuración</div>} />
                 </Routes>

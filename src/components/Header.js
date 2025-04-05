@@ -1,43 +1,67 @@
-import React from "react";
-import styled from "styled-components";
-import { FaBars, FaSignOutAlt } from "react-icons/fa";
-
-const HeaderContainer = styled.header`
-  background-color: #28a745;
-  color: white;
-  padding: 10px 20px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-`;
-
-const Title = styled.h1`
-  font-size: 20px;
-  margin: 0;
-`;
-
-const LogoutButton = styled.button`
-  background: none;
-  border: none;
-  color: white;
-  font-size: 18px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  
-  &:hover {
-    color: #ddd;
-  }
-`;
+import React, { useState } from "react";
+import { FaBars, FaSignOutAlt, FaSearch } from "react-icons/fa";
+import {
+  HeaderContainer,
+  Logo,
+  LogoImage,
+  MenuIcon,
+  SearchBar,
+  SearchInput,
+  SearchIcon,
+  RightSection,
+  UserIcon,
+  UserMenu,
+  UserEmail,
+  LogoutButton
+} from "../styles/Header.styles";
+import logo from "../assets/Logo.png";
 
 const Header = ({ onLogout, toggleSidebar }) => {
+  const [menuOpen, setMenuOpen] = useState(false);
+  
+  const toggleMenu = () => {
+    setMenuOpen(!menuOpen);
+  };
+  
+  const handleLogout = () => {
+    if (onLogout) {
+      onLogout();
+    }
+    setMenuOpen(false);
+  };
+  
   return (
     <HeaderContainer>
-      <FaBars style={{ fontSize: "24px", cursor: "pointer" }} onClick={toggleSidebar} />
-      <Title>SFM AGRORER</Title>
-      <LogoutButton onClick={onLogout}>
-        <FaSignOutAlt style={{ marginRight: "5px" }} /> Cerrar Sesión
-      </LogoutButton>
+      <Logo>
+        <MenuIcon onClick={toggleSidebar}>
+          <FaBars />
+        </MenuIcon>
+        <LogoImage src={logo} alt="SMF AGROGER Logo" />
+        <span>SMF AGROGER</span>
+      </Logo>
+      
+      <SearchBar>
+        <SearchIcon>
+          <FaSearch />
+        </SearchIcon>
+        <SearchInput placeholder="Search Menu" />
+      </SearchBar>
+      
+      <RightSection>
+        <UserIcon onClick={toggleMenu}>A</UserIcon>
+        
+        <UserMenu isOpen={menuOpen}>
+          <UserEmail>
+            <UserIcon className="avatar">A</UserIcon>
+            <span className="email">appsagrojurado@gmail.com</span>
+          </UserEmail>
+          
+          <LogoutButton onClick={handleLogout}>
+            <FaSignOutAlt className="icon" />
+            Log Out
+          </LogoutButton>
+        </UserMenu>
+      </RightSection>
     </HeaderContainer>
   );
 };

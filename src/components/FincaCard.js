@@ -7,7 +7,6 @@ const FincaCard = ({ id, name, image }) => {
   const navigate = useNavigate();
 
   const handleClick = () => {
-    console.log('Navegando a:', `/fincas/${id}`);
     navigate(`/fincas/${id}`);
   };
 
