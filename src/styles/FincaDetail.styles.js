@@ -13,6 +13,14 @@ export const MainContainer = styled.div`
   box-sizing: border-box;
 `;
 
+export const PanelsContainer = styled.div`
+  display: flex;
+  width: 100%;
+  overflow: hidden;
+  box-sizing: border-box;
+  height: calc(100vh - 170px);
+`;
+
 // Filtro por fechas
 export const FilterPanel = styled.div`
   width: 180px;
@@ -462,4 +470,45 @@ export const Navigation = styled.div`
     font-weight: 500;
     white-space: nowrap;
   }
+`;
+
+export const LoadingIndicator = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: #f5f5f5;
+  color: #555;
+  font-size: 18px;
+  
+  &::after {
+    content: '';
+    width: 20px;
+    height: 20px;
+    border: 3px solid #ddd;
+    border-top: 3px solid #2e7d32;
+    border-radius: 50%;
+    margin-left: 10px;
+    animation: spin 1s linear infinite;
+  }
+  
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+`;
+
+export const ErrorMessage = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+  background-color: #fafafa;
+  color: #d32f2f;
+  font-size: 16px;
+  border-radius: 8px;
+  margin: 20px auto;
+  max-width: 600px;
+  border: 1px solid #f5c6cb;
+  padding: 20px;
 `; 
