@@ -49,7 +49,12 @@ export const Input = styled.input`
   margin: 10px 0;
   border: 1px solid #ccc;
   border-radius: 5px;
-  box-sizing: border-box; 
+  box-sizing: border-box;
+  
+  &:disabled {
+    background-color: #f5f5f5;
+    cursor: not-allowed;
+  }
 `;
 
 export const Button = styled.button`
@@ -62,10 +67,15 @@ export const Button = styled.button`
   cursor: pointer;
   margin-top: 10px;
   font-size: 16px;
-  box-sizing: border-box; 
-
+  box-sizing: border-box;
+  
   &:hover {
     background-color: #218838;
+  }
+  
+  &:disabled {
+    background-color: #6c757d;
+    cursor: not-allowed;
   }
 `;
 
@@ -74,5 +84,12 @@ export const Copyright = styled.div`
   color: white;
   font-size: 14px;
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+  text-align: center;
+`;
+
+export const ErrorMessage = styled.div`
+  color: #dc3545;
+  font-size: 14px;
+  margin-top: 8px;
   text-align: center;
 `;

@@ -7,22 +7,49 @@ import {
   LogoJuradoImage, 
   Input, 
   Button, 
-  Copyright 
+  Copyright,
+  ErrorMessage
 } from "../styles/LoginStyles";
 import Logo from "../assets/Logo.png";
 import LogoJurado from "../assets/Logo-Jurado.png";
 import BackgroundImage from "../assets/Fondo-Login.jpg";
+import authService from "../services/authService";
 
 const Login = ({ onLogin }) => {
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (username === "admin" && password === "1234") {
+    setError("");
+    setIsLoading(true);
+    
+    try {
+      // Intento con las credenciales hardcodeadas primero para evitar solicitud a API si no es necesario
+      if (email === "admin" && password === "1234") {
+        localStorage.setItem("isAuthenticated", "true");
+        onLogin();
+        return;
+      }
+      
+      // Si no son las credenciales hardcodeadas, intenta con la API
+      await authService.login(email, password);
       onLogin();
-    } else {
-      alert("Usuario o contraseña incorrectos");
+    } catch (err) {
+      console.error("Error de autenticación:", err);
+      
+      // Muestra el mensaje de error sin recargar la página
+      if (err.message) {
+        setError(err.message);
+      } else if (err.error) {
+        setError(err.error);
+      } else {
+        setError("Usuario o contraseña incorrectos");
+      }
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -34,9 +61,10 @@ const Login = ({ onLogin }) => {
           <Input
             type="text"
             placeholder="Usuario"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             required
+            disabled={isLoading}
           />
           <Input
             type="password"
@@ -44,8 +72,12 @@ const Login = ({ onLogin }) => {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
+            disabled={isLoading}
           />
-          <Button type="submit">Iniciar sesión</Button>
+          {error && <ErrorMessage>{error}</ErrorMessage>}
+          <Button type="submit" disabled={isLoading}>
+            {isLoading ? "Iniciando sesión..." : "Iniciar sesión"}
+          </Button>
         </form>
         <LogoJuradoImage
           src={LogoJurado}

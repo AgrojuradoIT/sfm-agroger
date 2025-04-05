@@ -15,6 +15,7 @@ import {
   LogoutButton
 } from "../styles/Header.styles";
 import logo from "../assets/Logo.png";
+import authService from '../services/authService';
 
 const Header = ({ onLogout, toggleSidebar }) => {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -23,9 +24,12 @@ const Header = ({ onLogout, toggleSidebar }) => {
     setMenuOpen(!menuOpen);
   };
   
-  const handleLogout = () => {
-    if (onLogout) {
-      onLogout();
+  const handleLogout = async () => {
+    try {
+      await authService.logout();
+      // Ya no necesitamos llamar al callback, el servicio maneja la redirección
+    } catch (error) {
+      console.error("Error al cerrar sesión:", error);
     }
     setMenuOpen(false);
   };
@@ -58,7 +62,7 @@ const Header = ({ onLogout, toggleSidebar }) => {
           
           <LogoutButton onClick={handleLogout}>
             <FaSignOutAlt className="icon" />
-            Log Out
+            Cerrar Sesión
           </LogoutButton>
         </UserMenu>
       </RightSection>
