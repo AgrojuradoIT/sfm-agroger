@@ -15,6 +15,8 @@ const ProtectedRoute = ({ children }) => {
   const isAuthenticated = authService.isAuthenticated();
   const location = useLocation();
 
+  console.log("ProtectedRoute - path:", location.pathname, "- isAuthenticated:", isAuthenticated);
+
   if (!isAuthenticated) {
     // Redirigir al login pero guardar la ubicación actual
     return <Navigate to="/" state={{ from: location }} replace />;
@@ -63,6 +65,8 @@ function App() {
     }
   };
 
+  console.log("Renderizando App con isAuthenticated =", isAuthenticated);
+
   return (
     <Router>
       {showWelcome && (
@@ -91,7 +95,9 @@ function App() {
                 <div style={{ marginTop: "20px", padding: "20px" }}>
                   <Routes>
                     <Route path="/fincas" element={<FincaList />} />
-                    <Route path="/fincas/:id" element={<FincaDetail />} />
+                    <Route path="/fincas/:id" element={
+                      <FincaDetail />
+                    } />
                     <Route path="/informes" element={<div>Página de Informes</div>} />
                     <Route path="/configuracion" element={<div>Página de Configuración</div>} />
                     <Route path="*" element={<Navigate to="/fincas" replace />} />

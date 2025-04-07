@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { FaAngleRight } from 'react-icons/fa';
+import { FaAngleRight, FaCalendarAlt, FaUser, FaExclamationTriangle } from 'react-icons/fa';
 import {
   FilterPanel,
   EvaluationsPanel,
@@ -12,7 +12,6 @@ import {
   OperatorHeader,
   EvaluationItem,
   EvaluationDetails,
-  EvaluationPercentage,
   EvaluationTitle,
   MapContainer,
   DetailTable,
@@ -26,169 +25,131 @@ import {
 } from '../styles/FincaDetail.styles';
 import fincaService from '../services/fincaService';
 
-// Función para agrupar evaluaciones por año
-const agruparPorAño = (evaluaciones) => {
-  return evaluaciones.reduce((acc, evaluacion) => {
-    const año = evaluacion.fecha.split('/')[2];
-    if (!acc[año]) {
-      acc[año] = [];
-    }
-    acc[año].push(evaluacion);
-    return acc;
-  }, {});
-};
-
-// Función para agrupar evaluaciones por fecha
-const agruparPorFecha = (evaluaciones) => {
-  return evaluaciones.reduce((acc, evaluacion) => {
-    const fecha = evaluacion.fecha;
-    if (!acc[fecha]) {
-      acc[fecha] = [];
-    }
-    acc[fecha].push(evaluacion);
-    return acc;
-  }, {});
-};
-
-// Función para agrupar evaluaciones por evaluador
-const agruparPorEvaluador = (evaluaciones) => {
-  return evaluaciones.reduce((acc, evaluacion) => {
-    if (!acc[evaluacion.evaluador]) {
-      acc[evaluacion.evaluador] = [];
-    }
-    acc[evaluacion.evaluador].push(evaluacion);
-    return acc;
-  }, {});
+// Mapeo de letras a IDs de finca
+const FINCA_ID_MAP = {
+  'a': '1',
+  'b': '2',
+  'c': '3',
+  'd': '4'
 };
 
 const FincaDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [selectedYear, setSelectedYear] = useState(null);
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedOperator, setSelectedOperator] = useState(null);
   const [selectedEvaluation, setSelectedEvaluation] = useState(null);
-  const [expandedYears, setExpandedYears] = useState({});
-  const [evaluaciones, setEvaluaciones] = useState([]);
+  const [evaluacionesPorFecha, setEvaluacionesPorFecha] = useState({});
+  const [evaluacionesPorOperario, setEvaluacionesPorOperario] = useState({});
+  const [todasLasEvaluaciones, setTodasLasEvaluaciones] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [usandoDatosEjemplo, setUsandoDatosEjemplo] = useState(false);
+  const [mensaje, setMensaje] = useState('');
 
-  // Cargar datos de la finca al iniciar
-  useEffect(() => {
-    const cargarEvaluaciones = async () => {
-      try {
-        setIsLoading(true);
-        const resultado = await fincaService.getEvaluacionesByFincaId(id);
-        setEvaluaciones(resultado.evaluaciones);
-        setUsandoDatosEjemplo(resultado.usandoDatosEjemplo);
-        
-        // Si hay evaluaciones, seleccionar el año más reciente
-        if (resultado.evaluaciones.length > 0) {
-          const años = [...new Set(resultado.evaluaciones.map(e => e.fecha.split('/')[2]))];
-          const añoReciente = años.sort((a, b) => b - a)[0];
-          
-          setSelectedYear(añoReciente);
-          setExpandedYears({ [añoReciente]: true });
-        }
-      } catch (err) {
-        console.error('Error al cargar evaluaciones:', err);
-        setError('No se pudieron cargar las evaluaciones. Por favor, intenta nuevamente.');
-      } finally {
-        setIsLoading(false);
+  // Extraer fetchData fuera del useEffect para poder reutilizarla
+  const fetchData = async () => {
+    try {
+      setIsLoading(true);
+      const fincaId = FINCA_ID_MAP[id.toLowerCase()];
+      if (!fincaId) {
+        throw new Error('ID de finca no válido');
       }
-    };
-    
-    cargarEvaluaciones();
-  }, [id]);
-
-  // Agrupar evaluaciones por año
-  const evaluacionesPorAño = agruparPorAño(evaluaciones);
-  
-  // Agrupar evaluaciones por fecha para el año seleccionado
-  const fechasDelAño = selectedYear ? 
-    agruparPorFecha(evaluaciones.filter(e => e.fecha.split('/')[2] === selectedYear)) : 
-    {};
-  
-  // Filtrar evaluaciones por fecha seleccionada
-  const evaluacionesPorFecha = selectedDate ? 
-    evaluaciones.filter(e => e.fecha === selectedDate) : 
-    (selectedYear ? 
-      evaluaciones.filter(e => e.fecha.split('/')[2] === selectedYear) : 
-      evaluaciones);
-  
-  // Agrupar por evaluador las evaluaciones filtradas
-  const evaluadoresPorFecha = agruparPorEvaluador(evaluacionesPorFecha);
-  
-  // Evaluaciones del operador seleccionado
-  const evaluacionesDelOperador = selectedOperator ? 
-    evaluacionesPorFecha.filter(e => e.evaluador === selectedOperator) : 
-    [];
-
-  // Todas las evaluaciones del operador seleccionado (sin filtro de fecha)
-  const todasEvaluacionesDelOperador = selectedOperator ?
-    evaluaciones.filter(e => e.evaluador === selectedOperator) :
-    [];
-
-  const toggleYearExpand = (year) => {
-    setExpandedYears(prev => ({...prev, [year]: !prev[year]}));
-    setSelectedYear(year);
-    setSelectedDate(null);
-    setSelectedOperator(null);
-    setSelectedEvaluation(null);
-  };
-
-  const selectDate = (date) => {
-    setSelectedDate(date);
-    setSelectedOperator(null);
-    setSelectedEvaluation(null);
-  };
-
-  const selectOperator = (operator) => {
-    // Si ya está seleccionado, deseleccionarlo para volver a la lista
-    if (selectedOperator === operator) {
-      setSelectedOperator(null);
-      setSelectedEvaluation(null);
-    } else {
-      setSelectedOperator(operator);
-      setSelectedEvaluation(null);
+      
+      console.log(`FincaDetail - Obteniendo datos para finca ID: ${fincaId}`);
+      
+      // Llamar al servicio directamente para depurar
+      const apiResponse = await fincaService.getEvaluacionesByFincaId(fincaId);
+      console.log('FincaDetail - Respuesta completa:', apiResponse);
+      
+      // Si hay un mensaje, mostrarlo
+      if (apiResponse.mensaje) {
+        setMensaje(apiResponse.mensaje);
+      }
+      
+      setTodasLasEvaluaciones(apiResponse.evaluaciones || []);
+      setEvaluacionesPorFecha(apiResponse.evaluacionesPorFecha || {});
+      setEvaluacionesPorOperario(apiResponse.evaluacionesPorOperario || {});
+      setUsandoDatosEjemplo(apiResponse.usandoDatosEjemplo || false);
+      setError(null);
+    } catch (err) {
+      console.error('FincaDetail - Error al cargar datos:', err);
+      setError('Error al cargar los datos de la finca: ' + (err.message || 'Error desconocido'));
+      setEvaluacionesPorFecha({});
+      setEvaluacionesPorOperario({});
+      setMensaje('No se pudieron cargar los datos. Verifique la conexión al servidor.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const selectEvaluation = (evaluation) => {
-    setSelectedEvaluation(evaluation);
+  useEffect(() => {
+    fetchData();
+  }, [id]);
+
+  // Actualizar operarios cuando se selecciona una fecha
+  useEffect(() => {
+    if (selectedDate) {
+      console.log(`FincaDetail - Fecha seleccionada: ${selectedDate}`);
+      // Filtrar evaluaciones por la fecha seleccionada
+      const evaluacionesDeFecha = todasLasEvaluaciones.filter(ev => ev.fecha === selectedDate);
+      console.log(`FincaDetail - Evaluaciones para la fecha ${selectedDate}:`, evaluacionesDeFecha);
+      
+      // Agrupar por operario
+      const porOperario = evaluacionesDeFecha.reduce((acc, ev) => {
+        if (!acc[ev.polinizador]) {
+          acc[ev.polinizador] = [];
+        }
+        acc[ev.polinizador].push(ev);
+        return acc;
+      }, {});
+      
+      console.log('FincaDetail - Operarios para la fecha seleccionada:', porOperario);
+      setEvaluacionesPorOperario(porOperario);
+    } else {
+      setEvaluacionesPorOperario({});
+    }
+  }, [selectedDate, todasLasEvaluaciones]);
+
+  const selectDate = (fecha) => {
+    console.log(`FincaDetail - Seleccionando fecha: ${fecha}`);
+    setSelectedDate(fecha);
+    setSelectedOperator(null);
+    setSelectedEvaluation(null);
   };
 
-  // Formatear fecha para mostrar (día/mes)
-  const formatearFecha = (fecha) => {
-    const [dia, mes] = fecha.split('/');
-    return `${dia}/${mes}`;
+  const selectOperator = (operario) => {
+    console.log(`FincaDetail - Seleccionando operario: ${operario}`);
+    setSelectedOperator(operario);
+    // Mostrar la primera evaluación del operario en la fecha seleccionada
+    const evaluacionesOperario = evaluacionesPorOperario[operario] || [];
+    console.log(`FincaDetail - Evaluaciones del operario ${operario}:`, evaluacionesOperario);
+    setSelectedEvaluation(evaluacionesOperario[0] || null);
   };
 
-  // Función para volver a la página principal
   const goToHome = () => {
     navigate('/');
   };
 
-  // Función para mostrar todos los operarios
-  const showAllOperators = () => {
-    setSelectedDate(null);
-    setSelectedYear(null);
-    setSelectedOperator(null);
-    setSelectedEvaluation(null);
-    // Colapsar todos los años
-    setExpandedYears({});
+  const reintentar = () => {
+    setIsLoading(true);
+    setError(null);
+    setMensaje('');
+    // Volver a cargar los datos
+    fetchData();
   };
 
-  // Mostrar indicador de carga mientras se cargan los datos
   if (isLoading) {
     return <LoadingIndicator>Cargando datos de la finca...</LoadingIndicator>;
   }
+
+  const fechasOrdenadas = Object.entries(evaluacionesPorFecha || {})
+    .sort(([fechaA], [fechaB]) => new Date(fechaB) - new Date(fechaA));
+
+  const operariosOrdenados = Object.entries(evaluacionesPorOperario || {});
   
-  // Mostrar mensaje de error si ocurrió alguno y no hay datos de ejemplo
-  if (error && evaluaciones.length === 0) {
-    return <ErrorMessage>{error}</ErrorMessage>;
-  }
+  console.log('FincaDetail - Render - Fechas ordenadas:', fechasOrdenadas);
+  console.log('FincaDetail - Render - Operarios ordenados:', operariosOrdenados);
 
   return (
     <>
@@ -200,13 +161,7 @@ const FincaDetail = () => {
           <FaAngleRight />
         </div>
         <div className="nav-item">
-          <span className="nav-link" onClick={goToHome}>Finca {id.toUpperCase()}</span>
-        </div>
-        <div className="separator">
-          <FaAngleRight />
-        </div>
-        <div className="nav-item">
-          <span className="current">Evaluacion Polen FA</span>
+          <span className="current">Finca {id.toUpperCase()}</span>
         </div>
       </Navigation>
       
@@ -218,236 +173,189 @@ const FincaDetail = () => {
           borderRadius: '4px', 
           margin: '10px', 
           fontSize: '14px',
-          textAlign: 'center' 
+          textAlign: 'center',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '8px'
         }}>
+          <FaExclamationTriangle />
           Mostrando datos de ejemplo. No se pudo conectar con la API.
         </div>
       )}
       
-      <PanelsContainer>
-        {/* Sidebar Negro (izquierda) - Filtro por fechas */}
-        <FilterPanel>
-          <AllButton 
-            onClick={showAllOperators} 
-            selected={!selectedYear && !selectedDate}
+      {mensaje && (
+        <div style={{ 
+          padding: '10px', 
+          background: '#d4edda', 
+          color: '#155724', 
+          borderRadius: '4px', 
+          margin: '10px', 
+          fontSize: '14px',
+          textAlign: 'center' 
+        }}>
+          {mensaje}
+        </div>
+      )}
+      
+      {error && (
+        <div style={{ 
+          padding: '10px', 
+          background: '#f8d7da', 
+          color: '#721c24', 
+          borderRadius: '4px', 
+          margin: '10px', 
+          fontSize: '14px',
+          textAlign: 'center',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: '8px'
+        }}>
+          <div><FaExclamationTriangle /> {error}</div>
+          <button 
+            onClick={reintentar}
+            style={{
+              padding: '5px 10px',
+              background: '#721c24',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer'
+            }}
           >
-            All
-          </AllButton>
-          
-          {Object.keys(evaluacionesPorAño).sort((a, b) => b - a).map(año => (
-            <div key={año}>
-              <YearSection onClick={() => toggleYearExpand(año)}>
-                <span className="year-icon">📆</span>
-                <span className="year-text">{año}</span>
-                <span className="year-count">{evaluacionesPorAño[año].length}</span>
-              </YearSection>
-              
-              {expandedYears[año] && Object.keys(fechasDelAño)
-                .sort((a, b) => {
-                  const [diaA, mesA] = a.split('/').map(Number);
-                  const [diaB, mesB] = b.split('/').map(Number);
-                  if (mesA !== mesB) return mesB - mesA;
-                  return diaB - diaA;
-                })
-                .map(fecha => (
-                  <DateItem 
-                    key={fecha} 
-                    selected={fecha === selectedDate}
-                    onClick={() => selectDate(fecha)}
-                  >
-                    {formatearFecha(fecha)} 
-                    <DateBadge selected={fecha === selectedDate}>
-                      {fechasDelAño[fecha].length}
-                    </DateBadge>
-                  </DateItem>
-                ))}
-            </div>
-          ))}
-        </FilterPanel>
-          
-        {/* Panel Amarillo (centro) - Listado de evaluaciones por operario */}
-        <EvaluationsPanel>
-          {selectedDate ? (
-            // Si hay una fecha seleccionada, mostrar los operarios de esa fecha
-            <>
-              {/* Mostrar todos los operarios de la fecha seleccionada */}
-              {!selectedOperator && Object.keys(evaluadoresPorFecha).map(operador => (
-                <div key={operador}>
-                  <OperatorHeader onClick={() => selectOperator(operador)}>
-                    <span className="operator-name">{operador}</span>
-                    <span className="operator-count">{evaluadoresPorFecha[operador].length}</span>
-                  </OperatorHeader>
-                </div>
-              ))}
+            Reintentar
+          </button>
+        </div>
+      )}
 
-              {/* Si se seleccionó un operario, mostrar sus evaluaciones */}
-              {selectedOperator && (
-                <>
-                  <OperatorHeader onClick={() => selectOperator(selectedOperator)} style={{ cursor: 'pointer' }}>
-                    <span className="operator-name">{selectedOperator}</span>
-                    <span className="operator-count">{evaluacionesDelOperador.length}</span>
-                  </OperatorHeader>
-                  
-                  {evaluacionesDelOperador.map(evaluacion => (
-                    <EvaluationItem 
-                      key={evaluacion.id}
-                      selected={selectedEvaluation && selectedEvaluation.id === evaluacion.id}
-                      onClick={() => selectEvaluation(evaluacion)}
-                    >
-                      <EvaluationDetails>
-                        <div className="section">
-                          Sección {evaluacion.seccion || 'N/A'}
-                        </div>
-                        <div className="date">{evaluacion.fecha}</div>
-                      </EvaluationDetails>
-                      <EvaluationPercentage value={evaluacion.porcentaje}>
-                        {evaluacion.porcentaje}
-                      </EvaluationPercentage>
-                    </EvaluationItem>
-                  ))}
-                </>
-              )}
-            </>
-          ) : selectedYear ? (
-            // Si no hay fecha pero hay año seleccionado, mostrar mensaje de selección
-            <div style={{ padding: '15px', textAlign: 'center', color: '#666', fontSize: '13px' }}>
-              Selecciona una fecha para ver las evaluaciones
-            </div>
+      <PanelsContainer>
+        {/* Panel de Fechas */}
+        <FilterPanel>
+          <div className="panel-header">
+            <FaCalendarAlt /> Fechas
+          </div>
+          {fechasOrdenadas.length > 0 ? (
+            fechasOrdenadas.map(([fecha, evals]) => (
+              <DateItem 
+                key={fecha}
+                onClick={() => selectDate(fecha)}
+                selected={selectedDate === fecha}
+              >
+                <div className="date-info">
+                  <div className="date">{fecha}</div>
+                  <div className="count">{evals.length} evaluaciones</div>
+                </div>
+              </DateItem>
+            ))
           ) : (
-            // Si no hay fecha ni año seleccionado (All), mostrar todos los operarios
-            <>
-              {!selectedOperator ? (
-                // Mostrar lista de todos los operarios
-                <>
-                  <div style={{ 
-                    padding: '15px', 
-                    textAlign: 'center', 
-                    fontWeight: 'bold', 
-                    borderBottom: '1px solid #eee',
-                    backgroundColor: '#f2f2f2',
-                    color: '#333'
-                  }}>
-                    Vista Global: Todos los operarios
-                  </div>
-                  
-                  {Object.keys(agruparPorEvaluador(evaluaciones)).map(operador => (
-                    <div key={operador}>
-                      <OperatorHeader onClick={() => selectOperator(operador)}>
-                        <span className="operator-name">{operador}</span>
-                        <span className="operator-count">
-                          {evaluaciones.filter(e => e.evaluador === operador).length}
-                        </span>
-                      </OperatorHeader>
-                    </div>
-                  ))}
-                </>
-              ) : (
-                // Mostrar evaluaciones del operario seleccionado
-                <>
-                  <OperatorHeader onClick={() => selectOperator(selectedOperator)} style={{ cursor: 'pointer' }}>
-                    <span className="operator-name">{selectedOperator}</span>
-                    <span className="operator-count">{todasEvaluacionesDelOperador.length}</span>
-                  </OperatorHeader>
-                  
-                  {todasEvaluacionesDelOperador
-                    .sort((a, b) => {
-                      // Ordenar por fecha descendente
-                      const [diaA, mesA, añoA] = a.fecha.split('/').map(Number);
-                      const [diaB, mesB, añoB] = b.fecha.split('/').map(Number);
-                      if (añoA !== añoB) return añoB - añoA;
-                      if (mesA !== mesB) return mesB - mesA;
-                      return diaB - diaA;
-                    })
-                    .map(evaluacion => (
-                      <EvaluationItem 
-                        key={evaluacion.id}
-                        selected={selectedEvaluation && selectedEvaluation.id === evaluacion.id}
-                        onClick={() => selectEvaluation(evaluacion)}
-                      >
-                        <EvaluationDetails>
-                          <div className="section">
-                            Sección {evaluacion.seccion || 'N/A'}
-                          </div>
-                          <div className="date">{evaluacion.fecha}</div>
-                        </EvaluationDetails>
-                        <EvaluationPercentage value={evaluacion.porcentaje}>
-                          {evaluacion.porcentaje}
-                        </EvaluationPercentage>
-                      </EvaluationItem>
-                    ))}
-                </>
-              )}
-            </>
+            <div style={{ padding: '15px', textAlign: 'center', color: '#666' }}>
+              No hay evaluaciones disponibles
+            </div>
+          )}
+        </FilterPanel>
+
+        {/* Panel de Operarios */}
+        <EvaluationsPanel>
+          <div className="panel-header">
+            <FaUser /> Operarios
+          </div>
+          {!selectedDate ? (
+            <div style={{ padding: '15px', textAlign: 'center', color: '#666' }}>
+              Selecciona una fecha para ver los operarios
+            </div>
+          ) : operariosOrdenados.length > 0 ? (
+            operariosOrdenados.map(([operario, evals]) => (
+              <OperatorHeader 
+                key={operario}
+                onClick={() => selectOperator(operario)}
+                selected={selectedOperator === operario}
+              >
+                <span className="operator-name">{operario}</span>
+                <span className="operator-count">{evals.length} evaluaciones</span>
+              </OperatorHeader>
+            ))
+          ) : (
+            <div style={{ padding: '15px', textAlign: 'center', color: '#666' }}>
+              No hay operarios disponibles para esta fecha
+            </div>
           )}
         </EvaluationsPanel>
 
-        {/* Panel Azul (derecha) - Detalle de la evaluación seleccionada */}
+        {/* Panel de Detalles */}
         <DetailPanel>
           {selectedEvaluation ? (
             <>
               <EvaluationTitle>
-                Evaluación de Polen #{selectedEvaluation.id}
+                Evaluación General #{selectedEvaluation.id}
               </EvaluationTitle>
-              
-              <MapContainer>
-                <img src="/images/evaluation_map.jpg" alt="Mapa de evaluación" />
-                <div className="overlay">
-                  <div className="evaluator">{selectedEvaluation.evaluador}</div>
-                  <div className="percentage">{selectedEvaluation.porcentaje}</div>
-                </div>
-              </MapContainer>
               
               <DetailTable>
                 <tbody>
                   <DetailRow>
                     <DetailLabel>ID Evaluación</DetailLabel>
-                    <DetailValue>EvalPol-{selectedEvaluation.id}</DetailValue>
+                    <DetailValue>EvalGen-{selectedEvaluation.id}</DetailValue>
                   </DetailRow>
                   <DetailRow>
-                    <DetailLabel>FechaInicio</DetailLabel>
+                    <DetailLabel>Fecha</DetailLabel>
                     <DetailValue>{selectedEvaluation.fecha}</DetailValue>
                   </DetailRow>
                   <DetailRow>
-                    <DetailLabel>HoraInicio</DetailLabel>
-                    <DetailValue>{selectedEvaluation.horaInicio}</DetailValue>
+                    <DetailLabel>Hora</DetailLabel>
+                    <DetailValue>{selectedEvaluation.hora}</DetailValue>
                   </DetailRow>
                   <DetailRow>
                     <DetailLabel>Semana</DetailLabel>
                     <DetailValue>Semana {selectedEvaluation.semana}</DetailValue>
                   </DetailRow>
                   <DetailRow>
-                    <DetailLabel>Ubicación</DetailLabel>
-                    <DetailValue>Finca {id.toUpperCase()}</DetailValue>
-                  </DetailRow>
-                  <DetailRow>
                     <DetailLabel>Evaluador</DetailLabel>
-                    <DetailValue>{selectedEvaluation.email || selectedEvaluation.evaluador}</DetailValue>
+                    <DetailValue>{selectedEvaluation.evaluador}</DetailValue>
                   </DetailRow>
                   <DetailRow>
-                    <DetailLabel>Lote</DetailLabel>
-                    <DetailValue>Lote {selectedEvaluation.lote}</DetailValue>
+                    <DetailLabel>Polinizador</DetailLabel>
+                    <DetailValue>{selectedEvaluation.polinizador}</DetailValue>
                   </DetailRow>
                   <DetailRow>
-                    <DetailLabel>Sección</DetailLabel>
-                    <DetailValue>{selectedEvaluation.seccion}</DetailValue>
-                  </DetailRow>
-                  <DetailRow>
-                    <DetailLabel>Palmas y Eventos</DetailLabel>
-                    <DetailValue>Palmas: {selectedEvaluation.eventos?.palmas} / Eventos: {selectedEvaluation.eventos?.eventos}</DetailValue>
+                    <DetailLabel>Evaluaciones de Polinización</DetailLabel>
+                    <DetailValue>{selectedEvaluation.evaluacionesPolinizacion?.length || 0}</DetailValue>
                   </DetailRow>
                 </tbody>
               </DetailTable>
               
-              <div style={{ marginTop: '20px' }}>
-                <h3 style={{ borderBottom: '1px solid #eee', paddingBottom: '8px', fontSize: '16px' }}>
-                  Related EvaluacionPolinizacion_FAs <span style={{ backgroundColor: '#f0f0f0', padding: '2px 6px', borderRadius: '10px', fontSize: '11px' }}>93</span>
-                </h3>
-              </div>
+              {selectedEvaluation.evaluacionesPolinizacion?.length > 0 && (
+                <div style={{ marginTop: '20px' }}>
+                  <h3>Evaluaciones de Polinización</h3>
+                  <table style={{ width: '100%', marginTop: '10px' }}>
+                    <thead>
+                      <tr>
+                        <th>Sección</th>
+                        <th>Palma</th>
+                        <th>Inflorescencia</th>
+                        <th>Antesis</th>
+                        <th>Post-antesis</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {selectedEvaluation.evaluacionesPolinizacion.map(ep => (
+                        <tr key={ep.id}>
+                          <td>{ep.seccion}</td>
+                          <td>{ep.palma}</td>
+                          <td>{ep.inflorescencia}</td>
+                          <td>{ep.antesis}</td>
+                          <td>{ep.postantesis}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </>
           ) : (
-            // Si no hay evaluación seleccionada, mostrar un mensaje
-            <div style={{ padding: '15px', textAlign: 'center', color: '#666', fontSize: '13px' }}>
-              Selecciona una evaluación para ver los detalles
+            <div style={{ padding: '15px', textAlign: 'center', color: '#666' }}>
+              {!selectedDate ? 'Selecciona una fecha para ver las evaluaciones' :
+               !selectedOperator ? 'Selecciona un operario para ver sus evaluaciones' :
+               'No hay evaluaciones disponibles'}
             </div>
           )}
         </DetailPanel>

@@ -15,44 +15,45 @@ export const MainContainer = styled.div`
 
 export const PanelsContainer = styled.div`
   display: flex;
-  width: 100%;
-  overflow: hidden;
-  box-sizing: border-box;
-  height: calc(100vh - 170px);
+  height: calc(100vh - 60px);
+  background-color: #f5f5f5;
 `;
 
 // Filtro por fechas
 export const FilterPanel = styled.div`
-  width: 180px;
-  min-width: 160px;
+  width: 250px;
+  min-width: 250px;
   background-color: white;
   border-right: 1px solid #ddd;
   overflow-y: auto;
-  overflow-x: hidden;
-  display: flex;
-  flex-direction: column;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  box-sizing: border-box;
-
-  @media (max-width: 992px) {
-    width: 160px;
-    min-width: 140px;
+  
+  .panel-header {
+    padding: 15px;
+    font-weight: bold;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #ddd;
+    display: flex;
+    align-items: center;
+    gap: 8px;
   }
 `;
 
 // Listado de evaluaciones por operario
 export const EvaluationsPanel = styled.div`
-  width: 280px;
-  min-width: 250px;
+  width: 300px;
+  min-width: 300px;
   background-color: white;
   border-right: 1px solid #ddd;
   overflow-y: auto;
-  overflow-x: hidden;
-  box-sizing: border-box;
-
-  @media (max-width: 992px) {
-    width: 240px;
-    min-width: 220px;
+  
+  .panel-header {
+    padding: 15px;
+    font-weight: bold;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #ddd;
+    display: flex;
+    align-items: center;
+    gap: 8px;
   }
 `;
 
@@ -61,9 +62,26 @@ export const DetailPanel = styled.div`
   flex: 1;
   background-color: white;
   overflow-y: auto;
-  overflow-x: hidden;
-  padding: 10px 15px;
-  box-sizing: border-box;
+  padding: 20px;
+  
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+    
+    th {
+      background-color: #f8f9fa;
+    }
+    
+    tr:nth-child(even) {
+      background-color: #f8f9fa;
+    }
+  }
 `;
 
 // Estilos para el panel de filtros 
@@ -110,23 +128,25 @@ export const YearSection = styled.div`
 `;
 
 export const DateItem = styled.div`
-  padding: 6px 12px;
+  padding: 12px 15px;
+  border-bottom: 1px solid #ddd;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  color: ${props => props.selected ? '#2e7d32' : '#333'};
-  font-weight: ${props => props.selected ? 'bold' : 'normal'};
-  background-color: ${props => props.selected ? '#f0f7f0' : 'transparent'};
-  font-size: 13px;
+  background-color: ${props => props.selected ? '#e8f0fe' : 'white'};
   
   &:hover {
-    background-color: #f5f5f5;
+    background-color: ${props => props.selected ? '#e8f0fe' : '#f8f9fa'};
   }
-
-  @media (max-width: 992px) {
-    padding: 5px 8px;
-    font-size: 12px;
+  
+  .date-info {
+    .date {
+      font-weight: bold;
+      margin-bottom: 4px;
+    }
+    
+    .count {
+      font-size: 12px;
+      color: #666;
+    }
   }
 `;
 
@@ -145,16 +165,20 @@ export const DateBadge = styled.span`
 
 // Estilos para el panel de operarios y evaluaciones (amarillo)
 export const OperatorHeader = styled.div`
-  padding: 8px 12px;
+  padding: 12px 15px;
+  border-bottom: 1px solid #ddd;
+  cursor: pointer;
+  background-color: ${props => props.selected ? '#e8f0fe' : 'white'};
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: #f0f0f0;
-  border-bottom: 1px solid #ddd;
+  
+  &:hover {
+    background-color: ${props => props.selected ? '#e8f0fe' : '#f8f9fa'};
+  }
   
   .operator-name {
     font-weight: bold;
-    font-size: 15px;
   }
   
   .operator-count {
@@ -236,10 +260,9 @@ export const Breadcrumbs = styled.div`
 `;
 
 export const EvaluationTitle = styled.h1`
-  font-size: 20px;
-  margin: 8px 0;
-  white-space: normal;
-  word-break: break-word;
+  font-size: 24px;
+  margin-bottom: 20px;
+  color: #333;
 `;
 
 export const MapContainer = styled.div`
@@ -314,40 +337,27 @@ export const MapContainer = styled.div`
 
 export const DetailTable = styled.table`
   width: 100%;
+  margin-bottom: 20px;
   border-collapse: collapse;
-  table-layout: fixed;
 `;
 
 export const DetailRow = styled.tr`
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid #ddd;
+  
+  &:last-child {
+    border-bottom: none;
+  }
 `;
 
 export const DetailLabel = styled.td`
-  padding: 8px 6px;
-  color: #666;
-  font-size: 13px;
-  width: 110px;
-
-  @media (max-width: 992px) {
-    width: 100px;
-    font-size: 12px;
-    padding: 6px 4px;
-  }
+  padding: 12px;
+  font-weight: bold;
+  width: 200px;
+  background-color: #f8f9fa;
 `;
 
 export const DetailValue = styled.td`
-  padding: 8px 6px;
-  color: #333;
-  font-size: 13px;
-  font-weight: 500;
-  word-break: break-word;
-  max-width: 100%;
-  overflow-wrap: break-word;
-
-  @media (max-width: 992px) {
-    font-size: 12px;
-    padding: 6px 4px;
-  }
+  padding: 12px;
 `;
 
 export const DetailContainer = styled.div`
@@ -434,41 +444,30 @@ export const InfoItem = styled.div`
 export const Navigation = styled.div`
   display: flex;
   align-items: center;
-  padding: 10px 15px;
-  font-weight: 500;
-  color: #333;
+  padding: 10px 20px;
   background-color: white;
-  width: 100%;
-  height: 40px;
-  margin-top: 6px;
-  border-bottom: 1px solid #eaeaea;
-  box-sizing: border-box;
-  overflow: hidden;
-
+  border-bottom: 1px solid #ddd;
+  
   .nav-item {
     display: flex;
     align-items: center;
   }
-
-  .nav-icon, .separator {
-    margin: 0 5px;
-    color: #666;
-  }
-
+  
   .nav-link {
-    color: #666;
+    color: #0066cc;
     cursor: pointer;
-    white-space: nowrap;
-    
     &:hover {
-      color: #1fab89;
+      text-decoration: underline;
     }
   }
-
+  
   .current {
-    color: #333;
-    font-weight: 500;
-    white-space: nowrap;
+    color: #666;
+  }
+  
+  .separator {
+    margin: 0 10px;
+    color: #666;
   }
 `;
 
@@ -477,38 +476,15 @@ export const LoadingIndicator = styled.div`
   justify-content: center;
   align-items: center;
   height: 100vh;
-  background-color: #f5f5f5;
-  color: #555;
   font-size: 18px;
-  
-  &::after {
-    content: '';
-    width: 20px;
-    height: 20px;
-    border: 3px solid #ddd;
-    border-top: 3px solid #2e7d32;
-    border-radius: 50%;
-    margin-left: 10px;
-    animation: spin 1s linear infinite;
-  }
-  
-  @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-  }
+  color: #666;
 `;
 
 export const ErrorMessage = styled.div`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 200px;
-  background-color: #fafafa;
-  color: #d32f2f;
-  font-size: 16px;
-  border-radius: 8px;
-  margin: 20px auto;
-  max-width: 600px;
-  border: 1px solid #f5c6cb;
   padding: 20px;
+  margin: 20px;
+  background-color: #fff3cd;
+  color: #856404;
+  border-radius: 4px;
+  text-align: center;
 `; 

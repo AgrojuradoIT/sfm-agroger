@@ -1,13 +1,12 @@
 import api from './api';
 
 const fincaService = {
-  // Obtener todas las evaluaciones de polinización por finca
+  // Obtener todas las evaluaciones generales por finca
   getEvaluacionesByFincaId: async (fincaId) => {
     try {
-      // Obtenemos directamente las evaluaciones de polinización por finca
-      const evaluacionesResponse = await api.get(`/fincas/${fincaId}/evaluaciones-polinizacion`);
+      const evaluacionesResponse = await api.get(`/fincas/${fincaId}/evaluaciones-generales`);
       
-      if (evaluacionesResponse.data.length === 0) {
+      if (!evaluacionesResponse.data || evaluacionesResponse.data.length === 0) {
         return { 
           evaluaciones: [], 
           usandoDatosEjemplo: false,
@@ -22,22 +21,35 @@ const fincaService = {
       const evaluacionesFormateadas = evaluacionesResponse.data.map(ev => ({
         id: ev.id,
         fecha: formatearFecha(ev.fecha),
-        horaInicio: ev.hora.substring(0, 5),
-        horaFin: ev.hora.substring(0, 5),
-        semana: ev.semana,
-        lote: ev.lote?.descripcion || 'N/A',
-        seccion: ev.seccion,
-        evaluador: ev.evaluador?.nombres || 'N/A',
-        email: ev.evaluador?.correo || 'N/A',
-        porcentaje: calcularPorcentaje(ev),
-        eventos: {
-          palmas: ev.palma || 0,
-          eventos: ev.inflorescencia || 0
-        }
+        hora: ev.hora?.substring(0, 5) || 'N/A',
+        semana: ev.semana || 'N/A',
+        evaluador: ev.evaluador?.nombre || 'N/A',
+        polinizador: ev.polinizador?.nombre || 'N/A',
+        evaluacionesPolinizacion: ev.evaluacionesPolinizacion || []
       }));
       
+      // Agrupar por fecha
+      const evaluacionesPorFecha = evaluacionesFormateadas.reduce((acc, ev) => {
+        if (!acc[ev.fecha]) {
+          acc[ev.fecha] = [];
+        }
+        acc[ev.fecha].push(ev);
+        return acc;
+      }, {});
+      
+      // Agrupar por operario
+      const evaluacionesPorOperario = evaluacionesFormateadas.reduce((acc, ev) => {
+        if (!acc[ev.polinizador]) {
+          acc[ev.polinizador] = [];
+        }
+        acc[ev.polinizador].push(ev);
+        return acc;
+      }, {});
+      
       return { 
-        evaluaciones: evaluacionesFormateadas, 
+        evaluaciones: evaluacionesFormateadas,
+        evaluacionesPorFecha,
+        evaluacionesPorOperario,
         usandoDatosEjemplo: false,
         finca: {
           id: fincaId,
@@ -46,9 +58,10 @@ const fincaService = {
       };
     } catch (error) {
       console.error('Error obteniendo evaluaciones:', error);
-      // Retornamos datos de ejemplo en caso de error
       return {
-        evaluaciones: generarDatosEjemplo(),
+        evaluaciones: [],
+        evaluacionesPorFecha: {},
+        evaluacionesPorOperario: {},
         usandoDatosEjemplo: true,
         finca: {
           id: fincaId,
@@ -57,35 +70,26 @@ const fincaService = {
       };
     }
   },
-  
-  // Obtener evaluaciones por evaluación general
-  getEvaluacionesByEvaluacionGeneralId: async (evaluacionGeneralId) => {
+
+  // Obtener evaluaciones por fecha
+  getEvaluacionesByFecha: async (fecha) => {
     try {
-      // Obtenemos las evaluaciones de polinización por evaluación general
-      const evaluacionesResponse = await api.get(`/evaluaciones-generales/${evaluacionGeneralId}/evaluaciones-polinizacion`);
-      
-      // Transformamos los datos igual que en la función anterior
-      const evaluacionesFormateadas = evaluacionesResponse.data.map(ev => ({
-        id: ev.id,
-        fecha: formatearFecha(ev.fecha),
-        horaInicio: ev.hora.substring(0, 5),
-        horaFin: ev.hora.substring(0, 5),
-        semana: ev.semana,
-        lote: ev.lote?.descripcion || 'N/A',
-        seccion: ev.seccion,
-        evaluador: ev.evaluador?.nombres || 'N/A',
-        email: ev.evaluador?.correo || 'N/A',
-        porcentaje: calcularPorcentaje(ev),
-        eventos: {
-          palmas: ev.palma || 0,
-          eventos: ev.inflorescencia || 0
-        }
-      }));
-      
-      return { evaluaciones: evaluacionesFormateadas, usandoDatosEjemplo: false };
+      const evaluacionesResponse = await api.get(`/evaluaciones-generales/fecha?fecha=${fecha}`);
+      return evaluacionesResponse.data || [];
     } catch (error) {
-      console.error('Error obteniendo evaluaciones por evaluación general:', error);
-      return { evaluaciones: [], usandoDatosEjemplo: true };
+      console.error('Error obteniendo evaluaciones por fecha:', error);
+      return [];
+    }
+  },
+
+  // Obtener evaluaciones por operario
+  getEvaluacionesByOperario: async (operarioId) => {
+    try {
+      const evaluacionesResponse = await api.get(`/evaluaciones-generales/operario/${operarioId}`);
+      return evaluacionesResponse.data || [];
+    } catch (error) {
+      console.error('Error obteniendo evaluaciones por operario:', error);
+      return [];
     }
   }
 };
@@ -93,11 +97,16 @@ const fincaService = {
 // Formatear fecha de ISO a DD/MM/YYYY
 const formatearFecha = (fechaIso) => {
   if (!fechaIso) return 'N/A';
-  const fecha = new Date(fechaIso);
-  const dia = fecha.getDate().toString().padStart(2, '0');
-  const mes = (fecha.getMonth() + 1).toString().padStart(2, '0');
-  const año = fecha.getFullYear();
-  return `${dia}/${mes}/${año}`;
+  try {
+    const fecha = new Date(fechaIso);
+    const dia = fecha.getDate().toString().padStart(2, '0');
+    const mes = (fecha.getMonth() + 1).toString().padStart(2, '0');
+    const año = fecha.getFullYear();
+    return `${dia}/${mes}/${año}`;
+  } catch (error) {
+    console.error('Error formateando fecha:', error);
+    return 'N/A';
+  }
 };
 
 // Calcular porcentaje de efectividad (ejemplo)
