@@ -16,6 +16,8 @@ export const Container = styled.div`
   left: 0;
   margin: 0;
   padding: 0;
+  overflow: hidden;
+  will-change: opacity;
 `;
 
 export const LoginBox = styled.div`

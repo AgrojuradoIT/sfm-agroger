@@ -6,6 +6,8 @@ import FincaDetail from "./components/FincaDetail";
 import Sidebar from "./components/Sidebar";
 import Navigation from "./components/Navigation";
 import Login from "./pages/Login";
+import WelcomeNotification from './components/WelcomeNotification';
+import defaultProfile from './assets/default-profile.png';
 import authService from './services/authService';
 
 // Componente de protección de rutas
@@ -26,6 +28,9 @@ function App() {
     authService.isAuthenticated()
   );
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(false);
+  const [loggedUser, setLoggedUser] = useState("");
+  const [profileImage, setProfileImage] = useState(defaultProfile);
 
   // Actualizar el estado si cambia la autenticación
   useEffect(() => {
@@ -39,6 +44,15 @@ function App() {
     };
   }, []);
 
+  const handleLogin = (username) => {
+    setLoggedUser(username);
+    setShowWelcome(true);
+    setIsAuthenticated(true);
+    
+    // Aquí podrías cargar la imagen real del usuario si está disponible
+    // setProfileImage(userData.profileImage);
+  };
+
   const handleLogout = async () => {
     try {
       await authService.logout();
@@ -51,10 +65,18 @@ function App() {
 
   return (
     <Router>
+      {showWelcome && (
+        <WelcomeNotification
+          username={loggedUser}
+          profileImage={profileImage}
+          onClose={() => setShowWelcome(false)}
+        />
+      )}
+      
       <Routes>
         <Route path="/" element={
           !isAuthenticated ? (
-            <Login onLogin={() => setIsAuthenticated(true)} />
+            <Login onLogin={handleLogin} />
           ) : (
             <Navigate to="/fincas" replace />
           )

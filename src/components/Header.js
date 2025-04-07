@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { FaBars, FaSignOutAlt, FaSearch } from "react-icons/fa";
+import { useLocation, useParams, useNavigate } from "react-router-dom";
 import {
   HeaderContainer,
   Logo,
@@ -20,7 +21,30 @@ import authService from '../services/authService';
 const Header = ({ onLogout, toggleSidebar }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const location = useLocation();
+  const params = useParams();
+  const navigate = useNavigate();
   
+  const getRouteTitle = () => {
+    const pathSegments = location.pathname.split('/').filter(Boolean);
+    const lastSegment = pathSegments[pathSegments.length - 1] || '';
+    
+    if (pathSegments.length === 0) return 'SFM AGROGER';
+    
+    // Mapeo de rutas a títulos
+    if (lastSegment === 'fincas') return 'Fincas';
+    if (lastSegment === 'informes') return 'Informes';
+    if (lastSegment === 'configuracion') return 'Configuración';
+    if (params?.id && pathSegments.includes(params.id)) return `Finca ${params.id.toUpperCase()}`;
+    if (lastSegment === 'evaluacion-polen') return 'Evaluación Polen FD';
+    
+    return lastSegment;
+  };
+
+  const getSearchPlaceholder = () => {
+    return `Buscar en ${getRouteTitle()}`;
+  };
+
   const toggleMenu = () => {
     setMenuOpen(!menuOpen);
   };
@@ -44,28 +68,17 @@ const Header = ({ onLogout, toggleSidebar }) => {
     }
   };
 
-  const getSearchPlaceholder = () => {
-    const path = window.location.pathname;
-    
-    // Detectar rutas de detalle
-    if (/\/finca\/\d+/.test(path)) return 'Buscar en Evaluaciones';
-    
-    // Detectar otras rutas
-    if (path.includes('finca')) return 'Buscar una finca';
-    if (path.includes('usuario')) return 'Buscar un usuario';
-    if (path.includes('cultivo')) return 'Buscar un cultivo';
-    if (path.includes('reporte')) return 'Buscar un reporte';
-    
-    return 'Buscar en SFM AGROGER';
+  const handleLogoClick = () => {
+    navigate('/fincas');
   };
 
   return (
     <HeaderContainer>
-      <Logo>
+      <Logo onClick={handleLogoClick}>
         <MenuIcon onClick={toggleSidebar}>
           <FaBars />
         </MenuIcon>
-        <LogoImage src={logo} alt="SMF AGROGER Logo" />
+        <LogoImage src={logo} alt="Logo SFM AGROGER" />
         <span>SFM AGROGER</span>
       </Logo>
       

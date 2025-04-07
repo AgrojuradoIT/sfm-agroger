@@ -1,5 +1,6 @@
 // src/components/Login.js
 import React, { useState } from "react";
+import { motion } from "framer-motion";
 import { 
   Container, 
   LoginBox, 
@@ -27,20 +28,17 @@ const Login = ({ onLogin }) => {
     setIsLoading(true);
     
     try {
-      // Intento con las credenciales hardcodeadas primero para evitar solicitud a API si no es necesario
       if (email === "admin" && password === "1234") {
         localStorage.setItem("isAuthenticated", "true");
-        onLogin();
+        onLogin("Administrador");
         return;
       }
       
-      // Si no son las credenciales hardcodeadas, intenta con la API
       await authService.login(email, password);
-      onLogin();
+      onLogin(email.split('@')[0]); // Extrae el nombre del email
     } catch (err) {
       console.error("Error de autenticación:", err);
       
-      // Muestra el mensaje de error sin recargar la página
       if (err.message) {
         setError(err.message);
       } else if (err.error) {
@@ -54,44 +52,50 @@ const Login = ({ onLogin }) => {
   };
 
   return (
-    <Container backgroundImage={BackgroundImage}>
-      <LoginBox>
-        <LogoImage src={Logo} alt="Logo" />
-        <form onSubmit={handleSubmit}>
-          <Input
-            type="text"
-            placeholder="Usuario"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            disabled={isLoading}
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+    >
+      <Container style={{ backgroundImage: `url(${BackgroundImage})` }}>
+        <LoginBox>
+          <LogoImage src={Logo} alt="Logo" />
+          <form onSubmit={handleSubmit}>
+            <Input
+              type="text"
+              placeholder="Usuario"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              disabled={isLoading}
+            />
+            <Input
+              type="password"
+              placeholder="Contraseña"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              disabled={isLoading}
+            />
+            {error && <ErrorMessage>{error}</ErrorMessage>}
+            <Button type="submit" disabled={isLoading}>
+              {isLoading ? "Iniciando sesión..." : "Iniciar sesión"}
+            </Button>
+          </form>
+          <LogoJuradoImage
+            src={LogoJurado}
+            alt="Logo Jurado"
+            top="10px"
+            left="0px"
+            right="0px"
+            bottom="0px"
           />
-          <Input
-            type="password"
-            placeholder="Contraseña"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            disabled={isLoading}
-          />
-          {error && <ErrorMessage>{error}</ErrorMessage>}
-          <Button type="submit" disabled={isLoading}>
-            {isLoading ? "Iniciando sesión..." : "Iniciar sesión"}
-          </Button>
-        </form>
-        <LogoJuradoImage
-          src={LogoJurado}
-          alt="Logo Jurado"
-          top="10px"
-          left="0px"
-          right="0px"
-          bottom="0px"
-        />
-      </LoginBox>
-      <Copyright>
-        © {new Date().getFullYear()} Agrojurado Jurado S.A.S. Todos los derechos reservados.
-      </Copyright>
-    </Container>
+        </LoginBox>
+        <Copyright>
+          {new Date().getFullYear()} Agrojurado Jurado S.A.S. Todos los derechos reservados.
+        </Copyright>
+      </Container>
+    </motion.div>
   );
 };
 
