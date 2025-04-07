@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { FaAngleRight } from 'react-icons/fa';
 import {
-  MainContainer,
   FilterPanel,
   EvaluationsPanel,
   DetailPanel,

@@ -19,6 +19,7 @@ import authService from '../services/authService';
 
 const Header = ({ onLogout, toggleSidebar }) => {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
   
   const toggleMenu = () => {
     setMenuOpen(!menuOpen);
@@ -33,7 +34,31 @@ const Header = ({ onLogout, toggleSidebar }) => {
     }
     setMenuOpen(false);
   };
-  
+
+  const handleSearch = (e) => {
+    if (e.key === 'Enter' && searchTerm.trim()) {
+      // Aquí puedes implementar la lógica de búsqueda
+      console.log('Buscando:', searchTerm);
+      // Ejemplo: redireccionar a página de resultados
+      // window.location.href = `/search?q=${encodeURIComponent(searchTerm)}`;
+    }
+  };
+
+  const getSearchPlaceholder = () => {
+    const path = window.location.pathname;
+    
+    // Detectar rutas de detalle
+    if (/\/finca\/\d+/.test(path)) return 'Buscar en Evaluaciones';
+    
+    // Detectar otras rutas
+    if (path.includes('finca')) return 'Buscar una finca';
+    if (path.includes('usuario')) return 'Buscar un usuario';
+    if (path.includes('cultivo')) return 'Buscar un cultivo';
+    if (path.includes('reporte')) return 'Buscar un reporte';
+    
+    return 'Buscar en SFM AGROGER';
+  };
+
   return (
     <HeaderContainer>
       <Logo>
@@ -48,7 +73,12 @@ const Header = ({ onLogout, toggleSidebar }) => {
         <SearchIcon>
           <FaSearch />
         </SearchIcon>
-        <SearchInput placeholder="Search Menu" />
+        <SearchInput 
+          placeholder={getSearchPlaceholder()} 
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          onKeyDown={handleSearch}
+        />
       </SearchBar>
       
       <RightSection>
@@ -71,4 +101,3 @@ const Header = ({ onLogout, toggleSidebar }) => {
 };
 
 export default Header;
-
