@@ -14,8 +14,6 @@ const fincaService = {
       
       // Verificar si hay evaluaciones
       if (data && data.length > 0) {
-        console.log(`Se encontraron ${data.length} evaluaciones para la finca ${fincaId}`);
-        
         // Transformar los datos a un formato estándar si es necesario
         const evaluaciones = data.map(ev => ({
           id: ev.id || `ev-${Math.random().toString(36).substring(2, 9)}`,
