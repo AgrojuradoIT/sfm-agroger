@@ -1,26 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { FaAngleRight, FaCalendarAlt, FaUser, FaExclamationTriangle } from 'react-icons/fa';
 import {
   FilterPanel,
   EvaluationsPanel,
   DetailPanel,
-  AllButton,
-  YearSection,
   DateItem,
-  DateBadge,
   OperatorHeader,
-  EvaluationItem,
-  EvaluationDetails,
   EvaluationTitle,
-  MapContainer,
   DetailTable,
   DetailRow,
   DetailLabel,
   DetailValue,
   Navigation,
   LoadingIndicator,
-  ErrorMessage,
   PanelsContainer
 } from '../styles/FincaDetail.styles';
 import fincaService from '../services/fincaService';
@@ -48,10 +41,10 @@ const FincaDetail = () => {
   const [mensaje, setMensaje] = useState('');
 
   // Extraer fetchData fuera del useEffect para poder reutilizarla
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setIsLoading(true);
-      const fincaId = FINCA_ID_MAP[id.toLowerCase()];
+      const fincaId = FINCA_ID_MAP[id?.toLowerCase()];
       if (!fincaId) {
         throw new Error('ID de finca no válido');
       }
@@ -67,64 +60,137 @@ const FincaDetail = () => {
         setMensaje(apiResponse.mensaje);
       }
       
-      setTodasLasEvaluaciones(apiResponse.evaluaciones || []);
-      setEvaluacionesPorFecha(apiResponse.evaluacionesPorFecha || {});
-      setEvaluacionesPorOperario(apiResponse.evaluacionesPorOperario || {});
+      // Verificar si tenemos evaluaciones
+      if (apiResponse.evaluaciones && apiResponse.evaluaciones.length > 0) {
+        console.log(`FincaDetail - Se encontraron ${apiResponse.evaluaciones.length} evaluaciones`);
+        
+        // Guardar las evaluaciones
+        setTodasLasEvaluaciones(apiResponse.evaluaciones);
+        
+        // Guardar las evaluaciones por fecha
+        setEvaluacionesPorFecha(apiResponse.evaluacionesPorFecha || {});
+        
+        // Guardar operarios de todas las evaluaciones
+        setEvaluacionesPorOperario(apiResponse.evaluacionesPorOperario || {});
+        
+        // Ver qué datos estamos guardando
+        console.log('Datos a guardar:', {
+          evaluaciones: apiResponse.evaluaciones,
+          porFecha: apiResponse.evaluacionesPorFecha,
+          porOperario: apiResponse.evaluacionesPorOperario
+        });
+      } else {
+        console.log('FincaDetail - No se encontraron evaluaciones');
+        setTodasLasEvaluaciones([]);
+        setEvaluacionesPorFecha({});
+        setEvaluacionesPorOperario({});
+      }
+      
       setUsandoDatosEjemplo(apiResponse.usandoDatosEjemplo || false);
       setError(null);
+      
+      // Limpiar selecciones cuando se cargan nuevos datos
+      setSelectedDate(null);
+      setSelectedOperator(null);
+      setSelectedEvaluation(null);
     } catch (err) {
       console.error('FincaDetail - Error al cargar datos:', err);
       setError('Error al cargar los datos de la finca: ' + (err.message || 'Error desconocido'));
+      setTodasLasEvaluaciones([]);
       setEvaluacionesPorFecha({});
       setEvaluacionesPorOperario({});
       setMensaje('No se pudieron cargar los datos. Verifique la conexión al servidor.');
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [id]);
 
   useEffect(() => {
     fetchData();
-  }, [id]);
-
-  // Actualizar operarios cuando se selecciona una fecha
-  useEffect(() => {
-    if (selectedDate) {
-      console.log(`FincaDetail - Fecha seleccionada: ${selectedDate}`);
-      // Filtrar evaluaciones por la fecha seleccionada
-      const evaluacionesDeFecha = todasLasEvaluaciones.filter(ev => ev.fecha === selectedDate);
-      console.log(`FincaDetail - Evaluaciones para la fecha ${selectedDate}:`, evaluacionesDeFecha);
-      
-      // Agrupar por operario
-      const porOperario = evaluacionesDeFecha.reduce((acc, ev) => {
-        if (!acc[ev.polinizador]) {
-          acc[ev.polinizador] = [];
-        }
-        acc[ev.polinizador].push(ev);
-        return acc;
-      }, {});
-      
-      console.log('FincaDetail - Operarios para la fecha seleccionada:', porOperario);
-      setEvaluacionesPorOperario(porOperario);
-    } else {
-      setEvaluacionesPorOperario({});
-    }
-  }, [selectedDate, todasLasEvaluaciones]);
+  }, [fetchData]);
 
   const selectDate = (fecha) => {
     console.log(`FincaDetail - Seleccionando fecha: ${fecha}`);
-    setSelectedDate(fecha);
+    
+    // Si ya está seleccionada, deseleccionar
+    if (selectedDate === fecha) {
+      console.log('FincaDetail - Deseleccionando fecha, mostrando todos los operarios');
+      setSelectedDate(null);
+        
+      // Reconstruir evaluacionesPorOperario directamente desde todasLasEvaluaciones
+      if (todasLasEvaluaciones.length > 0) {
+        const todosOperarios = {};
+        todasLasEvaluaciones.forEach(ev => {
+          if (ev.polinizador && ev.polinizador !== 'N/A') {
+            if (!todosOperarios[ev.polinizador]) {
+              todosOperarios[ev.polinizador] = [];
+            }
+            todosOperarios[ev.polinizador].push(ev);
+          }
+        });
+        
+        setEvaluacionesPorOperario(todosOperarios);
+      }
+    } else {
+      setSelectedDate(fecha);
+      
+      // Utilizamos directamente las evaluaciones por fecha que tenemos de la API
+      if (evaluacionesPorFecha[fecha]) {
+        console.log(`FincaDetail - Usando datos de API: ${evaluacionesPorFecha[fecha].length} evaluaciones para fecha ${fecha}`);
+        
+        // Filtrar operarios para esta fecha
+        const porOperario = {};
+        evaluacionesPorFecha[fecha].forEach(ev => {
+          if (ev.polinizador && ev.polinizador !== 'N/A') {
+            if (!porOperario[ev.polinizador]) {
+              porOperario[ev.polinizador] = [];
+            }
+            porOperario[ev.polinizador].push(ev);
+          }
+        });
+        
+        console.log(`FincaDetail - Filtrado ${Object.keys(porOperario).length} operarios para la fecha ${fecha}`);
+        setEvaluacionesPorOperario(porOperario);
+      } else {
+        console.log(`FincaDetail - No hay datos para la fecha ${fecha}`);
+        setEvaluacionesPorOperario({});
+      }
+    }
+    
+    // Reiniciamos las selecciones de operario y evaluación
     setSelectedOperator(null);
     setSelectedEvaluation(null);
   };
 
   const selectOperator = (operario) => {
     console.log(`FincaDetail - Seleccionando operario: ${operario}`);
-    setSelectedOperator(operario);
-    // Mostrar la primera evaluación del operario en la fecha seleccionada
-    const evaluacionesOperario = evaluacionesPorOperario[operario] || [];
-    console.log(`FincaDetail - Evaluaciones del operario ${operario}:`, evaluacionesOperario);
-    setSelectedEvaluation(evaluacionesOperario[0] || null);
+    
+    // Si ya está seleccionado, deseleccionar
+    if (selectedOperator === operario) {
+      console.log('FincaDetail - Deseleccionando operario');
+      setSelectedOperator(null);
+      setSelectedEvaluation(null);
+    } else {
+      setSelectedOperator(operario);
+      
+      // Obtener las evaluaciones del operario seleccionado
+      if (evaluacionesPorOperario && evaluacionesPorOperario[operario]) {
+        const evaluacionesOperario = evaluacionesPorOperario[operario];
+        console.log(`FincaDetail - Operario ${operario} tiene ${evaluacionesOperario.length} evaluaciones`);
+        
+        if (evaluacionesOperario.length > 0) {
+          console.log('FincaDetail - Primera evaluación del operario:', evaluacionesOperario[0]);
+          // Mostrar la primera evaluación del operario
+          setSelectedEvaluation(evaluacionesOperario[0]);
+        } else {
+          console.log('FincaDetail - No hay evaluaciones para este operario');
+          setSelectedEvaluation(null);
+        }
+      } else {
+        console.log('FincaDetail - No hay datos para este operario:', operario);
+        setSelectedEvaluation(null);
+      }
+    }
   };
 
   const goToHome = () => {
@@ -144,7 +210,23 @@ const FincaDetail = () => {
   }
 
   const fechasOrdenadas = Object.entries(evaluacionesPorFecha || {})
-    .sort(([fechaA], [fechaB]) => new Date(fechaB) - new Date(fechaA));
+    .sort(([fechaA], [fechaB]) => {
+      try {
+        // Convertir las fechas de DD/MM/YYYY a Date para comparar
+        const [diaA, mesA, anioA] = fechaA.split('/').map(Number);
+        const [diaB, mesB, anioB] = fechaB.split('/').map(Number);
+        
+        // Crear objetos Date (mes se resta 1 porque en Date los meses van de 0 a 11)
+        const dateA = new Date(anioA, mesA - 1, diaA);
+        const dateB = new Date(anioB, mesB - 1, diaB);
+        
+        // Ordenar de más reciente a más antigua
+        return dateB - dateA;
+      } catch (error) {
+        console.error('Error ordenando fechas:', error);
+        return 0;
+      }
+    });
 
   const operariosOrdenados = Object.entries(evaluacionesPorOperario || {});
   
