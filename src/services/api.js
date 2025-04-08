@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-// Ajusta esta URL según la ubicación real de tu API Laravel
+// URL de la API según los logs
 const API_URL = 'https://apis.agrojurado.com/api';
 
 const api = axios.create({

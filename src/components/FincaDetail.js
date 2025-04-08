@@ -119,6 +119,7 @@ const FincaDetail = () => {
         
       // Reconstruir evaluacionesPorOperario directamente desde todasLasEvaluaciones
       if (todasLasEvaluaciones.length > 0) {
+        console.log('Reconstruyendo operarios desde todas las evaluaciones', todasLasEvaluaciones.length);
         const todosOperarios = {};
         todasLasEvaluaciones.forEach(ev => {
           if (ev.polinizador && ev.polinizador !== 'N/A') {
@@ -129,30 +130,43 @@ const FincaDetail = () => {
           }
         });
         
+        console.log('Operarios reconstruidos:', Object.keys(todosOperarios));
         setEvaluacionesPorOperario(todosOperarios);
       }
     } else {
       setSelectedDate(fecha);
       
-      // Utilizamos directamente las evaluaciones por fecha que tenemos de la API
+      // Intentar obtener directamente de evaluacionesPorFecha
       if (evaluacionesPorFecha[fecha]) {
-        console.log(`FincaDetail - Usando datos de API: ${evaluacionesPorFecha[fecha].length} evaluaciones para fecha ${fecha}`);
+        console.log(`FincaDetail - Fecha seleccionada encontrada: ${fecha}`, evaluacionesPorFecha[fecha]);
         
-        // Filtrar operarios para esta fecha
-        const porOperario = {};
-        evaluacionesPorFecha[fecha].forEach(ev => {
-          if (ev.polinizador && ev.polinizador !== 'N/A') {
-            if (!porOperario[ev.polinizador]) {
-              porOperario[ev.polinizador] = [];
+        // Verificar si necesitamos filtrar los operarios o tenemos ya la estructura preparada
+        if (evaluacionesPorFecha[fecha].operarios) {
+          // Si ya hay una estructura de operarios pre-calculada
+          console.log('Usando operarios pre-calculados para esta fecha');
+          setEvaluacionesPorOperario(evaluacionesPorFecha[fecha].operarios);
+        } else {
+          // Filtrar operarios para esta fecha desde todas las evaluaciones
+          console.log('Filtrando operarios para la fecha seleccionada');
+          const evaluacionesDeFecha = todasLasEvaluaciones.filter(ev => ev.fecha === fecha);
+          console.log(`Evaluaciones para fecha ${fecha}:`, evaluacionesDeFecha.length);
+          
+          // Para cada evaluación de esta fecha, agrupamos por operario
+          const operariosFiltrados = {};
+          evaluacionesDeFecha.forEach(ev => {
+            if (ev.polinizador && ev.polinizador !== 'N/A') {
+              if (!operariosFiltrados[ev.polinizador]) {
+                operariosFiltrados[ev.polinizador] = [];
+              }
+              operariosFiltrados[ev.polinizador].push(ev);
             }
-            porOperario[ev.polinizador].push(ev);
-          }
-        });
-        
-        console.log(`FincaDetail - Filtrado ${Object.keys(porOperario).length} operarios para la fecha ${fecha}`);
-        setEvaluacionesPorOperario(porOperario);
+          });
+          
+          console.log('Operarios filtrados para esta fecha:', Object.keys(operariosFiltrados));
+          setEvaluacionesPorOperario(operariosFiltrados);
+        }
       } else {
-        console.log(`FincaDetail - No hay datos para la fecha ${fecha}`);
+        console.warn(`FincaDetail - No hay datos para la fecha ${fecha}`);
         setEvaluacionesPorOperario({});
       }
     }
@@ -223,15 +237,32 @@ const FincaDetail = () => {
         // Ordenar de más reciente a más antigua
         return dateB - dateA;
       } catch (error) {
-        console.error('Error ordenando fechas:', error);
+        console.error('Error ordenando fechas:', error, fechaA, fechaB);
         return 0;
       }
     });
 
   const operariosOrdenados = Object.entries(evaluacionesPorOperario || {});
   
+  // Logs detallados para depuración
+  console.log('FincaDetail - Datos disponibles:', {
+    evaluaciones: todasLasEvaluaciones.length,
+    fechas: Object.keys(evaluacionesPorFecha || {}).length,
+    operarios: Object.keys(evaluacionesPorOperario || {}).length
+  });
+  
   console.log('FincaDetail - Render - Fechas ordenadas:', fechasOrdenadas);
+  console.log('FincaDetail - Fechas originales:', Object.keys(evaluacionesPorFecha || {}));
   console.log('FincaDetail - Render - Operarios ordenados:', operariosOrdenados);
+
+  // Verificar si realmente hay datos disponibles
+  const hayDatosDisponibles = todasLasEvaluaciones.length > 0;
+  const hayFechasDisponibles = fechasOrdenadas.length > 0;
+  const hayOperariosDisponibles = operariosOrdenados.length > 0;
+  
+  console.log('Hay datos disponibles:', hayDatosDisponibles);
+  console.log('Hay fechas disponibles:', hayFechasDisponibles);
+  console.log('Hay operarios disponibles:', hayOperariosDisponibles);
 
   return (
     <>
@@ -310,6 +341,20 @@ const FincaDetail = () => {
           </button>
         </div>
       )}
+      
+      {!hayDatosDisponibles && !error && !isLoading && (
+        <div style={{ 
+          padding: '10px', 
+          background: '#f2f2f2', 
+          color: '#555', 
+          borderRadius: '4px', 
+          margin: '10px', 
+          fontSize: '14px',
+          textAlign: 'center'
+        }}>
+          No se encontraron evaluaciones para esta finca.
+        </div>
+      )}
 
       <PanelsContainer>
         {/* Panel de Fechas */}
@@ -317,7 +362,7 @@ const FincaDetail = () => {
           <div className="panel-header">
             <FaCalendarAlt /> Fechas
           </div>
-          {fechasOrdenadas.length > 0 ? (
+          {hayFechasDisponibles ? (
             fechasOrdenadas.map(([fecha, evals]) => (
               <DateItem 
                 key={fecha}
@@ -346,7 +391,7 @@ const FincaDetail = () => {
             <div style={{ padding: '15px', textAlign: 'center', color: '#666' }}>
               Selecciona una fecha para ver los operarios
             </div>
-          ) : operariosOrdenados.length > 0 ? (
+          ) : hayOperariosDisponibles ? (
             operariosOrdenados.map(([operario, evals]) => (
               <OperatorHeader 
                 key={operario}

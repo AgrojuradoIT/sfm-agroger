@@ -6,75 +6,38 @@ const fincaService = {
     try {
       console.log(`Realizando petición a: /fincas/${fincaId}/evaluaciones-generales`);
       const evaluacionesResponse = await api.get(`/fincas/${fincaId}/evaluaciones-generales`);
-      console.log('Respuesta API:', evaluacionesResponse);
+      console.log('Respuesta API completa:', evaluacionesResponse);
       
-      // Extraer datos de la respuesta según la estructura real que vemos en los logs
-      // La API devuelve { message, finca_id, total_evaluaciones, data }
-      const { message, data, total_evaluaciones } = evaluacionesResponse.data;
+      // Acceder directamente a los datos - según los logs, la API devuelve:
+      // data: { evaluaciones: [...], evaluacionesPorFecha: {...}, evaluacionesPorOperario: {...} }
+      const { data } = evaluacionesResponse;
+      console.log('Datos recibidos de la API:', data);
       
-      // Verificar si hay evaluaciones
-      if (data && data.length > 0) {
-        // Transformar los datos a un formato estándar si es necesario
-        const evaluaciones = data.map(ev => ({
-          id: ev.id || `ev-${Math.random().toString(36).substring(2, 9)}`,
-          fecha: ev.fecha ? formatearFecha(ev.fecha) : 'N/A',
-          hora: ev.hora?.substring(0, 5) || 'N/A',
-          semana: ev.semana || 'N/A',
-          evaluador: ev.evaluador?.nombre || 'N/A',
-          polinizador: ev.polinizador?.nombre || 'N/A',
-          lote: ev.lote?.descripcion || 'N/A',
-          evaluacionesPolinizacion: ev.evaluacionesPolinizacion || []
-        }));
-        
-        // Agrupar por fecha
-        const evaluacionesPorFecha = evaluaciones.reduce((acc, ev) => {
-          if (!acc[ev.fecha]) {
-            acc[ev.fecha] = [];
-          }
-          acc[ev.fecha].push(ev);
-          return acc;
-        }, {});
-        
-        // Agrupar por operario
-        const evaluacionesPorOperario = evaluaciones.reduce((acc, ev) => {
-          if (ev.polinizador && ev.polinizador !== 'N/A') {
-            if (!acc[ev.polinizador]) {
-              acc[ev.polinizador] = [];
-            }
-            acc[ev.polinizador].push(ev);
-          }
-          return acc;
-        }, {});
-        
-        console.log('Evaluaciones procesadas:', evaluaciones.length);
-        console.log('Fechas procesadas:', Object.keys(evaluacionesPorFecha).length);
-        console.log('Operarios procesados:', Object.keys(evaluacionesPorOperario).length);
-        
-        return { 
-          evaluaciones,
-          evaluacionesPorFecha,
-          evaluacionesPorOperario,
-          mensaje: message,
-          usandoDatosEjemplo: false,
-          finca: {
-            id: fincaId,
-            nombre: `Finca ${fincaId.toUpperCase()}`
-          }
-        };
-      } else {
-        console.log('No se encontraron evaluaciones');
-        return {
-          evaluaciones: [],
-          evaluacionesPorFecha: {},
-          evaluacionesPorOperario: {},
-          mensaje: message || 'No se encontraron evaluaciones',
-          usandoDatosEjemplo: false,
-          finca: {
-            id: fincaId,
-            nombre: `Finca ${fincaId.toUpperCase()}`
-          }
-        };
-      }
+      // Verificar qué propiedades contiene la respuesta
+      console.log('Propiedades en la respuesta:', Object.keys(data));
+      
+      // Extraer directamente las evaluaciones, fechas y operarios de la respuesta
+      const evaluaciones = data.evaluaciones || [];
+      const evaluacionesPorFecha = data.evaluacionesPorFecha || {};
+      const evaluacionesPorOperario = data.evaluacionesPorOperario || {};
+      const mensaje = data.message || '';
+      
+      // Imprimir información detallada para depuración
+      console.log(`Encontradas ${evaluaciones.length} evaluaciones`);
+      console.log(`Fechas encontradas: ${Object.keys(evaluacionesPorFecha).length}`, Object.keys(evaluacionesPorFecha));
+      console.log(`Operarios encontrados: ${Object.keys(evaluacionesPorOperario).length}`, Object.keys(evaluacionesPorOperario));
+      
+      return { 
+        evaluaciones,
+        evaluacionesPorFecha,
+        evaluacionesPorOperario,
+        mensaje,
+        usandoDatosEjemplo: false,
+        finca: {
+          id: fincaId,
+          nombre: `Finca ${fincaId.toUpperCase()}`
+        }
+      };
     } catch (error) {
       console.error('Error obteniendo evaluaciones:', error);
       
