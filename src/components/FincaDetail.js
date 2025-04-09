@@ -414,8 +414,44 @@ const FincaDetail = () => {
           {selectedEvaluation ? (
             <>
               <EvaluationTitle>
-                Evaluación General #{selectedEvaluation.id}
+                {selectedEvaluation.polinizador}
               </EvaluationTitle>
+
+              <div style={{ display: 'flex', gap: '20px', marginBottom: '20px' }}>
+                {selectedEvaluation.fotopath && (
+                  <div style={{ flex: 1 }}>
+                    <h4 style={{ marginBottom: '10px' }}>Foto del Operario</h4>
+                    <img 
+                      src={selectedEvaluation.fotopath}
+                      alt="Foto del operario"
+                      style={{ 
+                        width: '100%', 
+                        maxWidth: '250px', 
+                        height: 'auto',
+                        borderRadius: '8px',
+                        boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                      }}
+                    />
+                  </div>
+                )}
+                
+                {selectedEvaluation.firmapath && (
+                  <div style={{ flex: 1 }}>
+                    <h4 style={{ marginBottom: '10px' }}>Firma del Operario</h4>
+                    <img 
+                      src={selectedEvaluation.firmapath}
+                      alt="Firma del operario"
+                      style={{ 
+                        width: '100%', 
+                        maxWidth: '250px', 
+                        height: 'auto',
+                        borderRadius: '8px',
+                        boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
               
               <DetailTable>
                 <tbody>
@@ -453,28 +489,60 @@ const FincaDetail = () => {
               {selectedEvaluation.evaluacionesPolinizacion?.length > 0 && (
                 <div style={{ marginTop: '20px' }}>
                   <h3>Evaluaciones de Polinización</h3>
-                  <table style={{ width: '100%', marginTop: '10px' }}>
-                    <thead>
-                      <tr>
-                        <th>Sección</th>
-                        <th>Palma</th>
-                        <th>Inflorescencia</th>
-                        <th>Antesis</th>
-                        <th>Post-antesis</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {selectedEvaluation.evaluacionesPolinizacion.map(ep => (
-                        <tr key={ep.id}>
-                          <td>{ep.seccion}</td>
-                          <td>{ep.palma}</td>
-                          <td>{ep.inflorescencia}</td>
-                          <td>{ep.antesis}</td>
-                          <td>{ep.postantesis}</td>
+                  <div style={{ overflowX: 'auto', marginTop: '10px' }}>
+                    <table style={{ width: '100%', minWidth: '1200px' }}>
+                      <thead>
+                        <tr>
+                          <th>Fecha</th>
+                          <th>Hora</th>
+                          <th>Semana</th>
+                          <th>Ubicación</th>
+                          <th>ID Evaluador</th>
+                          <th>ID Polinizador</th>
+                          <th>ID Lote</th>
+                          <th>Sección</th>
+                          <th>Palma</th>
+                          <th>Inflorescencia</th>
+                          <th>Antesis</th>
+                          <th>Antesis Dejadas</th>
+                          <th>Post-antesis Dejadas</th>
+                          <th>Post-antesis</th>
+                          <th>Espate</th>
+                          <th>Aplicación</th>
+                          <th>Marcación</th>
+                          <th>Repaso 1</th>
+                          <th>Repaso 2</th>
+                          <th>Observaciones</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody>
+                        {selectedEvaluation.evaluacionesPolinizacion.map(ep => (
+                          <tr key={ep.id}>
+                            <td>{ep.fecha || ''}</td>
+                            <td>{ep.hora || ''}</td>
+                            <td>{ep.semana || ''}</td>
+                            <td>{ep.ubicacion || ''}</td>
+                            <td>{ep.idevaluador || ''}</td>
+                            <td>{ep.idpolinizador || ''}</td>
+                            <td>{ep.idlote || ''}</td>
+                            <td>{ep.seccion || ''}</td>
+                            <td>{ep.palma || ''}</td>
+                            <td>{ep.inflorescencia || ''}</td>
+                            <td>{ep.antesis === 0 ? '0' : ep.antesis || ''}</td>
+                            <td>{ep.antesisDejadas === 0 ? '0' : ep.antesisDejadas || ''}</td>
+                            <td>{ep.postantesisDejadas === 0 ? '0' : ep.postantesisDejadas || ''}</td>
+                            <td>{ep.postantesis === 0 ? '0' : ep.postantesis || ''}</td>
+                            <td>{ep.espate === 0 ? '0' : ep.espate || ''}</td>
+                            <td>{ep.aplicacion || ''}</td>
+                            <td>{ep.marcacion || ''}</td>
+                            <td>{ep.repaso1 || ''}</td>
+                            <td>{ep.repaso2 || ''}</td>
+                            <td>{ep.observaciones || ''}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               )}
             </>
