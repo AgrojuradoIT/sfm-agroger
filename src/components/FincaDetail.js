@@ -17,6 +17,7 @@ import {
   PanelsContainer
 } from '../styles/FincaDetail.styles';
 import fincaService from '../services/fincaService';
+import { calcularMetricasPolinizacion } from '../utils/calculosPolinizacion';
 
 // Mapeo de letras a IDs de finca
 const FINCA_ID_MAP = {
@@ -415,6 +416,18 @@ const FincaDetail = () => {
             <>
               <EvaluationTitle>
                 {selectedEvaluation.polinizador}
+                {selectedEvaluation.evaluacionesPolinizacion?.length > 0 && (
+                  <span style={{ 
+                    marginLeft: '15px', 
+                    fontSize: '0.9em',
+                    backgroundColor: '#e9ecef',
+                    padding: '4px 8px',
+                    borderRadius: '4px',
+                    color: '#495057'
+                  }}>
+                    {calcularMetricasPolinizacion(selectedEvaluation.evaluacionesPolinizacion).total.toFixed(2)}%
+                  </span>
+                )}
               </EvaluationTitle>
 
               <div style={{ display: 'flex', gap: '20px', marginBottom: '20px' }}>
@@ -542,6 +555,104 @@ const FincaDetail = () => {
                         ))}
                       </tbody>
                     </table>
+                  </div>
+
+                  {/* Tabla de Resumen de Métricas */}
+                  <div style={{ marginTop: '30px' }}>
+                    <h3>Resumen de Métricas de Polinización</h3>
+                    <div style={{ overflowX: 'auto', marginTop: '10px' }}>
+                      {(() => {
+                        const metricas = calcularMetricasPolinizacion(selectedEvaluation.evaluacionesPolinizacion);
+                        return (
+                          <table style={{ width: '100%', minWidth: '800px', borderCollapse: 'collapse' }}>
+                            <thead>
+                              <tr style={{ backgroundColor: '#f8f9fa' }}>
+                                <th style={{ padding: '10px', border: '1px solid #ddd' }}>Métrica</th>
+                                <th style={{ padding: '10px', border: '1px solid #ddd' }}>Valor</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <tr>
+                                <td style={{ padding: '10px', border: '1px solid #ddd' }}>Total Eventos</td>
+                                <td style={{ padding: '10px', border: '1px solid #ddd' }}>{metricas.sumaEventos}</td>
+                              </tr>
+                              <tr>
+                                <td style={{ padding: '10px', border: '1px solid #ddd' }}>Suma Antesis</td>
+                                <td style={{ padding: '10px', border: '1px solid #ddd' }}>{metricas.sumaAntesis}</td>
+                              </tr>
+                              <tr>
+                                <td style={{ padding: '10px', border: '1px solid #ddd' }}>Suma Post Antesis</td>
+                                <td style={{ padding: '10px', border: '1px solid #ddd' }}>{metricas.sumaPostAntesis}</td>
+                              </tr>
+                              <tr>
+                                <td style={{ padding: '10px', border: '1px solid #ddd' }}>Suma Antesis Dejadas</td>
+                                <td style={{ padding: '10px', border: '1px solid #ddd' }}>{metricas.sumaAntesisDejadas}</td>
+                              </tr>
+                              <tr>
+                                <td style={{ padding: '10px', border: '1px solid #ddd' }}>Suma Post Antesis Dejadas</td>
+                                <td style={{ padding: '10px', border: '1px solid #ddd' }}>{metricas.sumaPostAntesisDejadas}</td>
+                              </tr>
+                              <tr>
+                                <td style={{ padding: '10px', border: '1px solid #ddd' }}>Suma Inflorescencia</td>
+                                <td style={{ padding: '10px', border: '1px solid #ddd' }}>{metricas.sumaInflorescencia}</td>
+                              </tr>
+                              <tr>
+                                <td style={{ padding: '10px', border: '1px solid #ddd' }}>Suma Aplicación</td>
+                                <td style={{ padding: '10px', border: '1px solid #ddd' }}>{metricas.sumaAplicacion}</td>
+                              </tr>
+                              <tr>
+                                <td style={{ padding: '10px', border: '1px solid #ddd' }}>Suma Marcación</td>
+                                <td style={{ padding: '10px', border: '1px solid #ddd' }}>{metricas.sumaMarcacion}</td>
+                              </tr>
+                              <tr>
+                                <td style={{ padding: '10px', border: '1px solid #ddd' }}>Suma Espate</td>
+                                <td style={{ padding: '10px', border: '1px solid #ddd' }}>{metricas.sumaEspate}</td>
+                              </tr>
+                              <tr>
+                                <td style={{ padding: '10px', border: '1px solid #ddd' }}>Suma Repaso 1</td>
+                                <td style={{ padding: '10px', border: '1px solid #ddd' }}>{metricas.sumaRepaso1}</td>
+                              </tr>
+                              <tr>
+                                <td style={{ padding: '10px', border: '1px solid #ddd' }}>Suma Repaso 2</td>
+                                <td style={{ padding: '10px', border: '1px solid #ddd' }}>{metricas.sumaRepaso2}</td>
+                              </tr>
+                              <tr>
+                                <td style={{ padding: '10px', border: '1px solid #ddd' }}>% Antesis Dejadas</td>
+                                <td style={{ padding: '10px', border: '1px solid #ddd' }}>{metricas.porcentajeAntesisDejadas.toFixed(2)}%</td>
+                              </tr>
+                              <tr>
+                                <td style={{ padding: '10px', border: '1px solid #ddd' }}>% Post Antesis Dejadas</td>
+                                <td style={{ padding: '10px', border: '1px solid #ddd' }}>{metricas.porcentajePostAntesisDejadas.toFixed(2)}%</td>
+                              </tr>
+                              <tr>
+                                <td style={{ padding: '10px', border: '1px solid #ddd' }}>% Espate</td>
+                                <td style={{ padding: '10px', border: '1px solid #ddd' }}>{metricas.porcentajeEspate.toFixed(2)}%</td>
+                              </tr>
+                              <tr>
+                                <td style={{ padding: '10px', border: '1px solid #ddd' }}>% Aplicación</td>
+                                <td style={{ padding: '10px', border: '1px solid #ddd' }}>{metricas.porcentajeAplicacion.toFixed(2)}%</td>
+                              </tr>
+                              <tr>
+                                <td style={{ padding: '10px', border: '1px solid #ddd' }}>% Marcación</td>
+                                <td style={{ padding: '10px', border: '1px solid #ddd' }}>{metricas.porcentajeMarcacion.toFixed(2)}%</td>
+                              </tr>
+                              <tr>
+                                <td style={{ padding: '10px', border: '1px solid #ddd' }}>% Repaso 1</td>
+                                <td style={{ padding: '10px', border: '1px solid #ddd' }}>{metricas.porcentajeRepaso1.toFixed(2)}%</td>
+                              </tr>
+                              <tr>
+                                <td style={{ padding: '10px', border: '1px solid #ddd' }}>% Repaso 2</td>
+                                <td style={{ padding: '10px', border: '1px solid #ddd' }}>{metricas.porcentajeRepaso2.toFixed(2)}%</td>
+                              </tr>
+                              <tr style={{ backgroundColor: '#e9ecef', fontWeight: 'bold' }}>
+                                <td style={{ padding: '10px', border: '1px solid #ddd' }}>Total</td>
+                                <td style={{ padding: '10px', border: '1px solid #ddd' }}>{metricas.total.toFixed(2)}%</td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        );
+                      })()}
+                    </div>
                   </div>
                 </div>
               )}
