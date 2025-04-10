@@ -1,4 +1,5 @@
 import styled from 'styled-components';
+import { Box, Paper, Typography } from '@mui/material';
 
 // Estructura de tres paneles
 export const MainContainer = styled.div`
@@ -263,6 +264,92 @@ export const EvaluationTitle = styled.h1`
   font-size: 24px;
   margin-bottom: 20px;
   color: #333;
+`;
+
+export const OperatorPhotoContainer = styled(Paper)`
+  padding: 0;
+  margin-bottom: 24px;
+  border-radius: 0;
+  background: transparent;
+  margin-left: -24px;
+  margin-right: -24px;
+`;
+
+export const OperatorNameHeader = styled(Box)`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-left: 24px;
+  padding-right: 24px;
+`;
+
+export const OperatorTitle = styled(Typography)`
+  font-weight: bold;
+  color: #2e7d32;
+`;
+
+export const PhotoBox = styled(Box)`
+  width: 100%;
+  padding: 0;
+  margin: 0;
+`;
+
+export const PhotoContainer = styled(Box)`
+  position: relative;
+  width: 100%;
+  height: 400px;
+  border-radius: 0;
+  overflow: hidden;
+`;
+
+export const OperatorPhoto = styled.img`
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+`;
+
+export const PhotoOverlay = styled(Box)`
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: linear-gradient(transparent, rgba(0,0,0,0.7));
+  padding: 20px 15px 15px;
+`;
+
+export const OverlayText = styled(Typography)`
+  color: white;
+  font-weight: bold;
+  text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
+`;
+
+export const PhotoErrorPlaceholder = styled(Box)`
+  width: 100%;
+  height: 400px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  background-color: #f5f5f5;
+  border-radius: 0;
+  color: #757575;
+`;
+
+export const PhotoPlaceholder = styled(Box)`
+  width: 100%;
+  height: 400px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f5f5f5;
+  border-radius: 0;
+  color: #757575;
+`;
+
+export const ErrorText = styled(Typography)`
+  margin-top: 8px;
+  color: #666;
 `;
 
 export const MapContainer = styled.div`

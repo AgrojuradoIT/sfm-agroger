@@ -1,97 +1,154 @@
 // src/styles/LoginStyles.js
-import styled from "styled-components";
+// No need to import Material UI components for style objects
 
-export const Container = styled.div`
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  width: 100vw;
-  background-image: url(${props => props.backgroundImage});
-  background-size: cover;
-  background-position: center;
-  position: fixed;
-  top: 0;
-  left: 0;
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
-  will-change: opacity;
-`;
+// Company colors
+export const PRIMARY_COLOR = 'rgb(56, 85, 37)';
+export const SECONDARY_COLOR = 'rgb(107, 163, 54)';
 
-export const LoginBox = styled.div`
-  background-color: rgba(255, 255, 255, 0.9);
-  padding: 40px;
-  border-radius: 10px;
-  text-align: center;
-  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
-  width: 350px;
-  position: relative;
-`;
+// Using sx prop styles instead of styled components to avoid compatibility issues
+export const backgroundContainerStyle = {
+  display: 'flex',
+  flexDirection: 'column',
+  justifyContent: 'center',
+  alignItems: 'center',
+  minHeight: '100vh',
+  width: '100%',
+  backgroundSize: 'cover',
+  backgroundPosition: 'center',
+  position: 'fixed',
+  top: 0,
+  left: 0,
+  margin: 0,
+  padding: 0,
+  overflow: 'hidden'
+};
 
-export const LogoImage = styled.img`
-  width: 120px;
-  margin-bottom: 20px;
-`;
+export const loginPaperStyle = {
+  p: 4,
+  width: 350,
+  maxWidth: '90%',
+  borderRadius: 2,
+  backgroundColor: 'rgba(255, 255, 255, 0.95)',
+  borderTop: `4px solid ${PRIMARY_COLOR}`
+};
 
-export const LogoJuradoImage = styled.img`
-  width: 120px;
-  margin-top: 30px;
-  position: relative;
-  top: ${(props) => props.top || "0px"};
-  bottom: ${(props) => props.bottom || "0px"};
-  left: ${(props) => props.left || "0px"};
-  right: ${(props) => props.right || "0px"};
-`;
+export const formContainerStyle = {
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center'
+};
 
-export const Input = styled.input`
-  width: 100%;
-  padding: 10px;
-  margin: 10px 0;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  box-sizing: border-box;
-  
-  &:disabled {
-    background-color: #f5f5f5;
-    cursor: not-allowed;
+export const loginFormStyle = {
+  mt: 1,
+  width: '100%'
+};
+
+// Style for TextField focus color
+export const textFieldStyle = {
+  '& label.Mui-focused': {
+    color: PRIMARY_COLOR,
+  },
+  '& .MuiOutlinedInput-root': {
+    '&.Mui-focused fieldset': {
+      borderColor: SECONDARY_COLOR,
+    },
+  },
+};
+
+export const errorAlertStyle = {
+  mb: 2,
+  '& .MuiAlert-icon': {
+    color: PRIMARY_COLOR
   }
-`;
+};
 
-export const Button = styled.button`
-  width: 100%;
-  padding: 10px;
-  background-color: #28a745;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  margin-top: 10px;
-  font-size: 16px;
-  box-sizing: border-box;
-  
-  &:hover {
-    background-color: #218838;
+export const logoStyle = {
+  width: '180px',
+  marginBottom: '20px'
+};
+
+export const juradoLogoStyle = {
+  width: '120px',
+  margin: '20px auto 0',
+  display: 'block'
+};
+
+export const copyrightTextStyle = {
+  mt: 4,
+  color: 'white',
+  textShadow: '1px 1px 2px rgba(0,0,0,0.7)'
+};
+
+export const loginButtonStyle = {
+  mt: 3,
+  mb: 2,
+  py: 1.5,
+  borderRadius: 2,
+  backgroundColor: PRIMARY_COLOR,
+  '&:hover': {
+    backgroundColor: 'rgba(56, 85, 37, 0.9)'
   }
-  
-  &:disabled {
-    background-color: #6c757d;
-    cursor: not-allowed;
+};
+
+export const loadingIndicatorStyle = {
+  mr: 1
+};
+
+export const logoImageStyle = {
+  width: '120px',
+  marginBottom: '20px'
+};
+
+export const logoJuradoImageStyle = {
+  width: '120px',
+  marginTop: '30px',
+  position: 'relative'
+};
+
+export const inputStyle = {
+  width: '100%',
+  padding: '10px',
+  margin: '10px 0',
+  border: '1px solid #ccc',
+  borderRadius: '5px',
+  boxSizing: 'border-box',
+  '&:disabled': {
+    backgroundColor: '#f5f5f5',
+    cursor: 'not-allowed'
   }
-`;
+};
 
-export const Copyright = styled.div`
-  margin-top: 20px;
-  color: white;
-  font-size: 14px;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
-  text-align: center;
-`;
+export const styledButtonStyle = {
+  width: '100%',
+  padding: '10px',
+  backgroundColor: PRIMARY_COLOR,
+  color: 'white',
+  border: 'none',
+  borderRadius: '5px',
+  cursor: 'pointer',
+  marginTop: '10px',
+  fontSize: '16px',
+  boxSizing: 'border-box',
+  '&:hover': {
+    backgroundColor: 'rgba(56, 85, 37, 0.9)'
+  },
+  '&:disabled': {
+    backgroundColor: '#6c757d',
+    cursor: 'not-allowed'
+  }
+};
 
-export const ErrorMessage = styled.div`
-  color: #dc3545;
-  font-size: 14px;
-  margin-top: 8px;
-  text-align: center;
-`;
+export const copyrightStyle = {
+  marginTop: '20px',
+  color: 'white',
+  fontSize: '14px',
+  textShadow: '1px 1px 2px rgba(0, 0, 0, 0.5)',
+  textAlign: 'center'
+};
+
+export const errorMessageStyle = {
+  color: '#dc3545',
+  fontSize: '14px',
+  marginTop: '8px',
+  textAlign: 'center'
+};

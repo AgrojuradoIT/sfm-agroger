@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FaBars, FaSignOutAlt, FaSearch } from "react-icons/fa";
 import { useLocation, useParams, useNavigate } from "react-router-dom";
 import {
@@ -19,8 +19,17 @@ import logo from "../assets/Logo.png";
 import authService from '../services/authService';
 
 const Header = ({ onLogout, toggleSidebar }) => {
+  const [userEmail, setUserEmail] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  
+  useEffect(() => {
+    // Get the user email from localStorage if available
+    const storedEmail = localStorage.getItem("userEmail");
+    if (storedEmail) {
+      setUserEmail(storedEmail);
+    }
+  }, []);
   const location = useLocation();
   const params = useParams();
   const navigate = useNavigate();
@@ -74,12 +83,17 @@ const Header = ({ onLogout, toggleSidebar }) => {
 
   return (
     <HeaderContainer>
-      <Logo onClick={handleLogoClick}>
-        <MenuIcon onClick={toggleSidebar}>
+      <Logo>
+        <MenuIcon onClick={(e) => {
+          e.stopPropagation(); // Stop propagation to prevent Logo click
+          toggleSidebar();
+        }}>
           <FaBars />
         </MenuIcon>
-        <LogoImage src={logo} alt="Logo SFM AGROGER" />
-        <span>SFM AGROGER</span>
+        <div onClick={handleLogoClick} style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+          <LogoImage src={logo} alt="Logo SFM AGROGER" />
+          <span>SFM AGROGER</span>
+        </div>
       </Logo>
       
       <SearchBar>
@@ -95,12 +109,12 @@ const Header = ({ onLogout, toggleSidebar }) => {
       </SearchBar>
       
       <RightSection>
-        <UserIcon onClick={toggleMenu}>A</UserIcon>
+        <UserIcon onClick={toggleMenu}>{userEmail ? userEmail.charAt(0).toUpperCase() : 'A'}</UserIcon>
         
         <UserMenu isOpen={menuOpen}>
           <UserEmail>
-            <UserIcon className="avatar">A</UserIcon>
-            <span className="email">appsagrojurado@gmail.com</span>
+            <UserIcon className="avatar">{userEmail ? userEmail.charAt(0).toUpperCase() : 'A'}</UserIcon>
+            <span className="email">{userEmail || 'Usuario'}</span>
           </UserEmail>
           
           <LogoutButton onClick={handleLogout}>
