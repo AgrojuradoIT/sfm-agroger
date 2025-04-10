@@ -1,8 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { motion } from "framer-motion";
 import { Home, Description, Info } from "@mui/icons-material";
 import { SidebarContainer, IconButton, ButtonText } from "../styles/Sidebar.styles";
 import AboutModal from "./AboutModal";
+import { useNavigate } from "react-router-dom";
+import Tooltip from "./Tooltip";
 
 const itemVariants = {
   hidden: { opacity: 0, x: -20 },
@@ -11,6 +13,12 @@ const itemVariants = {
 
 const Sidebar = ({ isOpen }) => {
   const [showAboutModal, setShowAboutModal] = useState(false);
+  const [activeTooltip, setActiveTooltip] = useState(null);
+  const navigate = useNavigate();
+  
+  const homeRef = useRef(null);
+  const reportRef = useRef(null);
+  const aboutRef = useRef(null);
 
   return (
     <>
@@ -25,21 +33,42 @@ const Sidebar = ({ isOpen }) => {
           }}
         >
           <motion.div variants={itemVariants}>
-            <IconButton isOpen={isOpen} onClick={() => window.location.href='/fincas'} whileHover={{ scale: 1.05 }}>
+            <IconButton 
+              ref={homeRef}
+              isOpen={isOpen} 
+              onClick={() => navigate('/')} 
+              whileHover={{ scale: 1.05 }}
+              onMouseEnter={() => !isOpen && setActiveTooltip('home')}
+              onMouseLeave={() => setActiveTooltip(null)}
+            >
               <Home />
-              <ButtonText isOpen={isOpen}>Menu</ButtonText>
+              <ButtonText isOpen={isOpen}>Inicio</ButtonText>
             </IconButton>
           </motion.div>
           
           <motion.div variants={itemVariants}>
-            <IconButton isOpen={isOpen} onClick={() => window.open('https://report.agrojurado.com', '_blank')} whileHover={{ scale: 1.05 }}>
+            <IconButton 
+              ref={reportRef}
+              isOpen={isOpen} 
+              onClick={() => window.open('https://report.agrojurado.com', '_blank')} 
+              whileHover={{ scale: 1.05 }}
+              onMouseEnter={() => !isOpen && setActiveTooltip('report')}
+              onMouseLeave={() => setActiveTooltip(null)}
+            >
               <Description />
               <ButtonText isOpen={isOpen}>Reportes</ButtonText>
             </IconButton>
           </motion.div>
 
           <motion.div variants={itemVariants}>
-            <IconButton isOpen={isOpen} onClick={() => setShowAboutModal(true)} whileHover={{ scale: 1.05 }}>
+            <IconButton 
+              ref={aboutRef}
+              isOpen={isOpen} 
+              onClick={() => setShowAboutModal(true)} 
+              whileHover={{ scale: 1.05 }}
+              onMouseEnter={() => !isOpen && setActiveTooltip('about')}
+              onMouseLeave={() => setActiveTooltip(null)}
+            >
               <Info />
               <ButtonText isOpen={isOpen}>Acerca de</ButtonText>
             </IconButton>
@@ -51,6 +80,11 @@ const Sidebar = ({ isOpen }) => {
         isOpen={showAboutModal}
         onClose={() => setShowAboutModal(false)}
       />
+      
+      {/* Tooltips */}
+      <Tooltip text="Inicio" targetRef={homeRef} show={activeTooltip === 'home'} />
+      <Tooltip text="Reportes" targetRef={reportRef} show={activeTooltip === 'report'} />
+      <Tooltip text="Acerca de" targetRef={aboutRef} show={activeTooltip === 'about'} />
     </>
   );
 };

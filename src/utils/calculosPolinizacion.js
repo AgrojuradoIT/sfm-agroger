@@ -24,6 +24,8 @@ export const calcularMetricasPolinizacion = (evaluaciones) => {
       porcentajeMarcacion: 0,
       porcentajeRepaso1: 0,
       porcentajeRepaso2: 0,
+      proporcionalidadAntesis: 0,
+      proporcionalidadPostAntesis: 0,
       total: 0
     };
   }
@@ -77,6 +79,15 @@ export const calcularMetricasPolinizacion = (evaluaciones) => {
     ? (5 / sumaEventos) * (sumaEventos - sumaRepaso2)
     : 0;
 
+  // Nuevos cálculos de proporcionalidad
+  const proporcionalidadAntesis = sumaInflorescencia > 0
+    ? (sumaAntesis * 100) / sumaInflorescencia
+    : 0;
+
+  const proporcionalidadPostAntesis = sumaInflorescencia > 0
+    ? (sumaPostAntesis * 100) / sumaInflorescencia
+    : 0;
+
   // 19. Total
   const total = porcentajeAntesisDejadas + porcentajePostAntesisDejadas + porcentajeEspate + porcentajeAplicacion + porcentajeMarcacion + 
                 porcentajeRepaso1 + porcentajeRepaso2;
@@ -100,6 +111,8 @@ export const calcularMetricasPolinizacion = (evaluaciones) => {
     porcentajeMarcacion,
     porcentajeRepaso1,
     porcentajeRepaso2,
+    proporcionalidadAntesis,
+    proporcionalidadPostAntesis,
     total
   };
 };

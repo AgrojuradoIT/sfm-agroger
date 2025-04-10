@@ -634,49 +634,141 @@ const FincaDetail = () => {
                         </Typography>
                         
                         <Grid container spacing={6} justifyContent="center">
-                          {/* Tarjeta de rendimiento total */}
-                          <Grid item xs={12} sm={10} md={8} lg={6} xl={5}>
-                            <Box 
-                              sx={{
-                                backgroundColor: '#f5f5f5',
-                                padding: 3,
-                                borderRadius: 2,
-                                textAlign: 'center',
-                                boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
-                                position: 'relative',
-                                overflow: 'hidden',
-                                marginBottom: 2,
-                                background: 'linear-gradient(135deg, #f9f9f9 0%, #f0f0f0 100%)',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                alignItems: 'center',
-                                justifyContent: 'center'
-                              }}
-                            >
-                              <div style={{
-                                position: 'absolute',
-                                top: 0,
-                                left: 0,
-                                width: '100%',
-                                height: '6px',
-                                background: 'linear-gradient(90deg, #4caf50, #2196f3, #ff9800, #f44336)'
-                              }}></div>
-                              <Typography variant="h2" style={{fontWeight: 'bold', color: '#2e7d32', marginBottom: '10px', marginTop: '10px', textAlign: 'center'}}>
-                                {metricas.total.toFixed(2)} %
-                              </Typography>
-                              <Chip 
-                                label="Rendimiento Global"
-                                color="success"
-                                sx={{ 
-                                  fontSize: '1rem', 
-                                  fontWeight: 'bold', 
-                                  height: 32, 
-                                  marginBottom: '5px',
-                                  background: 'linear-gradient(90deg, #4caf50, #2e7d32)',
-                                  margin: '0 auto'
-                                }}
-                              />
-                            </Box>
+                          {/* Fila de tarjetas de métricas */}
+                          <Grid item xs={12}>
+                            <Grid container spacing={3} justifyContent="center">
+                              {/* Tarjeta de rendimiento total */}
+                              <Grid item xs={12} sm={4} md={4} lg={3}>
+                                <Box 
+                                  sx={{
+                                    backgroundColor: '#f5f5f5',
+                                    padding: 2,
+                                    borderRadius: 2,
+                                    textAlign: 'center',
+                                    boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+                                    position: 'relative',
+                                    overflow: 'hidden',
+                                    height: '100%',
+                                    background: 'linear-gradient(135deg, #f9f9f9 0%, #f0f0f0 100%)',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    alignItems: 'center',
+                                    justifyContent: 'center'
+                                  }}
+                                >
+                                  <div style={{
+                                    position: 'absolute',
+                                    top: 0,
+                                    left: 0,
+                                    width: '100%',
+                                    height: '6px',
+                                    background: 'linear-gradient(90deg, #4caf50, #2196f3, #ff9800, #f44336)'
+                                  }}></div>
+                                  <Typography variant="h3" style={{fontWeight: 'bold', color: '#2e7d32', marginBottom: '8px', marginTop: '8px', textAlign: 'center'}}>
+                                    {metricas.total.toFixed(2)}%
+                                  </Typography>
+                                  <Chip 
+                                    label="Rendimiento Global"
+                                    color="success"
+                                    sx={{ 
+                                      fontSize: '0.85rem', 
+                                      fontWeight: 'bold', 
+                                      height: 28, 
+                                      background: 'linear-gradient(90deg, #4caf50, #2e7d32)',
+                                      margin: '0 auto'
+                                    }}
+                                  />
+                                </Box>
+                              </Grid>
+
+                              {/* Proporcionalidad Antesis */}
+                              <Grid item xs={12} sm={4} md={4} lg={3}>
+                                <Box 
+                                  sx={{
+                                    backgroundColor: '#f5f5f5',
+                                    padding: 2,
+                                    borderRadius: 2,
+                                    textAlign: 'center',
+                                    boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+                                    position: 'relative',
+                                    overflow: 'hidden',
+                                    height: '100%',
+                                    background: 'linear-gradient(135deg, #f9f9f9 0%, #f0f0f0 100%)',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    alignItems: 'center',
+                                    justifyContent: 'center'
+                                  }}
+                                >
+                                  <div style={{
+                                    position: 'absolute',
+                                    top: 0,
+                                    left: 0,
+                                    width: '100%',
+                                    height: '6px',
+                                    background: 'linear-gradient(90deg, #4caf50, #81c784)'
+                                  }}></div>
+                                  <Typography variant="h3" style={{fontWeight: 'bold', color: '#4caf50', marginBottom: '8px', marginTop: '8px', textAlign: 'center'}}>
+                                    {metricas.proporcionalidadAntesis.toFixed(2)}%
+                                  </Typography>
+                                  <Chip 
+                                    label="Proporcionalidad Antesis"
+                                    sx={{ 
+                                      fontSize: '0.85rem', 
+                                      fontWeight: 'bold', 
+                                      height: 28, 
+                                      background: 'linear-gradient(90deg, #4caf50, #2e7d32)',
+                                      color: 'white',
+                                      margin: '0 auto'
+                                    }}
+                                  />
+                                </Box>
+                              </Grid>
+                              
+                              {/* Proporcionalidad Post-Antesis */}
+                              <Grid item xs={12} sm={4} md={4} lg={3}>
+                                <Box 
+                                  sx={{
+                                    backgroundColor: '#f5f5f5',
+                                    padding: 2,
+                                    borderRadius: 2,
+                                    textAlign: 'center',
+                                    boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+                                    position: 'relative',
+                                    overflow: 'hidden',
+                                    height: '100%',
+                                    background: 'linear-gradient(135deg, #f9f9f9 0%, #f0f0f0 100%)',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    alignItems: 'center',
+                                    justifyContent: 'center'
+                                  }}
+                                >
+                                  <div style={{
+                                    position: 'absolute',
+                                    top: 0,
+                                    left: 0,
+                                    width: '100%',
+                                    height: '6px',
+                                    background: 'linear-gradient(90deg, #2196f3, #64b5f6)'
+                                  }}></div>
+                                  <Typography variant="h3" style={{fontWeight: 'bold', color: '#2196f3', marginBottom: '8px', marginTop: '8px', textAlign: 'center'}}>
+                                    {metricas.proporcionalidadPostAntesis.toFixed(2)}%
+                                  </Typography>
+                                  <Chip 
+                                    label="Proporcionalidad Post-Antesis"
+                                    sx={{ 
+                                      fontSize: '0.85rem', 
+                                      fontWeight: 'bold', 
+                                      height: 28, 
+                                      background: 'linear-gradient(90deg, #2196f3, #1565c0)',
+                                      color: 'white',
+                                      margin: '0 auto'
+                                    }}
+                                  />
+                                </Box>
+                              </Grid>
+                            </Grid>
                           </Grid>
                           
                           {/* Indicadores de rendimiento */}

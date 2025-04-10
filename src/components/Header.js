@@ -78,7 +78,7 @@ const Header = ({ onLogout, toggleSidebar }) => {
   };
 
   const handleLogoClick = () => {
-    navigate('/fincas');
+    navigate('/');
   };
 
   return (
