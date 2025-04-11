@@ -48,6 +48,39 @@ export const calcularMetricasPolinizacion = (evaluaciones) => {
   const sumaEspate = evaluaciones.reduce((sum, ev) => sum + (ev.espate || 0), 0);
   const sumaRepaso1 = evaluaciones.reduce((sum, ev) => sum + (ev.repaso1 || 0), 0);
   const sumaRepaso2 = evaluaciones.reduce((sum, ev) => sum + (ev.repaso2 || 0), 0);
+  
+  // Función para verificar si un valor no está vacío, nulo o undefined
+  // Los ceros sí cuentan como valores válidos
+  const esValorValido = (valor) => {
+    if (valor === null || valor === undefined) return false;
+    if (valor === '' || valor === ' ') return false;
+    return true;
+  };
+  
+  // Cuenta la cantidad de datos que hay en la columna Repaso 1 (los nulos o blancos no se cuentan)
+  let EventosRepaso1 = 0;
+  
+  // Contar todos los valores válidos de Repaso 1
+  evaluaciones.forEach(ev => {
+    if (esValorValido(ev.repaso1)) {
+      EventosRepaso1++;
+    }
+  });
+  
+  // Cuenta la cantidad de datos que hay en la columna Repaso 2 (los nulos o blancos no se cuentan)
+  let EventosRepaso2 = 0;
+  
+  // Contar todos los valores válidos de Repaso 2
+  evaluaciones.forEach(ev => {
+    if (esValorValido(ev.repaso2)) {
+      EventosRepaso2++;
+    }
+  });
+  
+  // Registrar en consola para depuración
+  console.log(`Total de eventos con Repaso 1 válido (incluyendo ceros): ${EventosRepaso1}`);
+  console.log(`Total de eventos con Repaso 2 válido (incluyendo ceros): ${EventosRepaso2}`);
+  console.log(`Total de evaluaciones: ${evaluaciones.length}`);
 
   // 12-13. Porcentajes de antesis y post-antesis dejadas
   const porcentajeAntesisDejadas = sumaInflorescencia > 0 
@@ -71,12 +104,12 @@ export const calcularMetricasPolinizacion = (evaluaciones) => {
     ? (5 / sumaEventos) * (sumaEventos - sumaMarcacion)
     : 0;
 
-  const porcentajeRepaso1 = sumaEventos > 0
-    ? (5 / sumaEventos) * (sumaEventos - sumaRepaso1)
+  const porcentajeRepaso1 = EventosRepaso1 > 0
+    ? (5 / EventosRepaso1) * (EventosRepaso1 - sumaRepaso1)
     : 0;
 
-  const porcentajeRepaso2 = sumaEventos > 0
-    ? (5 / sumaEventos) * (sumaEventos - sumaRepaso2)
+  const porcentajeRepaso2 = EventosRepaso2 > 0
+    ? (5 / EventosRepaso2) * (EventosRepaso2 - sumaRepaso2)
     : 0;
 
   // Nuevos cálculos de proporcionalidad
@@ -87,6 +120,9 @@ export const calcularMetricasPolinizacion = (evaluaciones) => {
   const proporcionalidadPostAntesis = sumaInflorescencia > 0
     ? (sumaPostAntesis * 100) / sumaInflorescencia
     : 0;
+    
+
+  
 
   // 19. Total
   const total = porcentajeAntesisDejadas + porcentajePostAntesisDejadas + porcentajeEspate + porcentajeAplicacion + porcentajeMarcacion + 
@@ -113,6 +149,8 @@ export const calcularMetricasPolinizacion = (evaluaciones) => {
     porcentajeRepaso2,
     proporcionalidadAntesis,
     proporcionalidadPostAntesis,
+    EventosRepaso1,
+    EventosRepaso2,
     total
   };
 };

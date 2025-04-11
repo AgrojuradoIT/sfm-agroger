@@ -199,6 +199,259 @@ export const styles = {
     transition: 'background-color 0.2s'
   },
   
+  // Estilos para las tarjetas de valores totales
+  valoresTotalesCard: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    backgroundColor: 'white',
+    padding: '8px',
+    borderRadius: 2,
+    boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+    transition: 'all 0.3s ease',
+    position: 'relative',
+    overflow: 'hidden',
+    border: 'none',
+    margin: '0',
+    '&:hover': {
+      transform: 'translateY(-5px)',
+      boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
+      cursor: 'pointer'
+    }
+  },
+  
+  valoresTotalesColorBar: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '4px'
+  },
+  
+  valoresTotalesValue: {
+    fontWeight: 'bold',
+    marginBottom: '10px',
+    animation: 'countUp 1.5s ease-out forwards'
+  },
+  
+  valoresTotalesLabel: {
+    textAlign: 'center',
+    padding: '5px 10px',
+    fontWeight: 'bold',
+    backgroundColor: '#f5f5f5',
+    borderRadius: '15px',
+    animation: 'fadeIn 0.5s'
+  },
+  
+  // Estilos para títulos y encabezados
+  sectionTitle: {
+    marginBottom: '20px',
+    fontWeight: '500',
+    color: '#424242'
+  },
+  
+  // Estilos para contenedores y grids
+  metricsContainer: {
+    marginTop: '6rem',
+    marginBottom: '2rem'
+  },
+  
+  metricsRow: {
+    marginBottom: '3rem'
+  },
+  
+  metricsItemContainer: {
+    padding: '4px'
+  },
+  
+  // Estilos para botones
+  actionButton: {
+    marginTop: '16px'
+  },
+  
+  // Estilos adicionales para modales
+  modalContainer: {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    width: '80%',
+    maxWidth: '800px',
+    backgroundColor: 'white',
+    boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.1)',
+    padding: '20px',
+    borderRadius: '8px',
+    maxHeight: '90vh',
+    overflow: 'auto'
+  },
+  
+  modalHeaderAlt: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '20px'
+  },
+  
+  modalCloseButton: {
+    position: 'absolute',
+    top: '10px',
+    right: '10px',
+    color: '#757575',
+    '&:hover': {
+      color: '#424242',
+      backgroundColor: '#f5f5f5'
+    }
+  },
+  
+  // Estilos para el modal de eventos
+  eventosModalContainer: {
+    display: 'flex',
+    flexDirection: 'column',
+    overflow: 'hidden'
+  },
+  
+  eventosModalHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: '12px 16px',
+    borderBottom: '1px solid #eee'
+  },
+  
+  eventosModalTitle: {
+    fontWeight: 'bold',
+    color: '#444'
+  },
+  
+  eventosModalCloseButton: {
+    minWidth: '40px',
+    width: '40px',
+    height: '40px',
+    borderRadius: '50%',
+    color: '#777',
+    padding: 0,
+    '&:hover': {
+      color: '#f44336',
+      backgroundColor: 'rgba(0,0,0,0.03)'
+    }
+  },
+  
+  eventosModalContent: {
+    flex: 1,
+    overflow: 'auto',
+    padding: '0 8px'
+  },
+  
+  eventosModalTableContainer: {
+    minWidth: '100%'
+  },
+  
+  // Estilos para la tabla de eventos
+  eventosTable: {
+    width: '100%',
+    borderCollapse: 'collapse',
+    marginTop: '8px',
+    border: '1px solid #ddd'
+  },
+  
+  eventosTableHeaderRow: {
+    backgroundColor: '#f5f5f5',
+    position: 'sticky',
+    top: 0
+  },
+  
+  eventosTableHeaderCell: {
+    padding: '6px',
+    textAlign: 'center',
+    borderBottom: '1px solid #ddd',
+    borderRight: '1px solid #ddd',
+    fontWeight: 'bold',
+    fontSize: '0.8rem',
+    whiteSpace: 'nowrap',
+    position: 'sticky',
+    top: 0,
+    backgroundColor: '#f5f5f5',
+    zIndex: 1
+  },
+  
+  eventosTableHeaderCellWide: {
+    padding: '6px',
+    textAlign: 'center',
+    borderBottom: '1px solid #ddd',
+    borderRight: '1px solid #ddd',
+    fontWeight: 'bold',
+    fontSize: '0.8rem',
+    whiteSpace: 'nowrap',
+    position: 'sticky',
+    top: 0,
+    backgroundColor: '#f5f5f5',
+    zIndex: 1,
+    minWidth: '120px'
+  },
+  
+  eventosTableCell: {
+    padding: '6px',
+    textAlign: 'center',
+    borderBottom: '1px solid #ddd',
+    borderRight: '1px solid #ddd',
+    fontSize: '0.8rem',
+    whiteSpace: 'nowrap'
+  },
+  
+  eventosTableRow: {
+    '&:nth-of-type(odd)': {
+      backgroundColor: '#f9f9f9'
+    },
+    '&:hover': {
+      backgroundColor: '#f0f7ff'
+    }
+  },
+  
+  eventosTableRowAlternate: {
+    backgroundColor: (index) => index % 2 === 0 ? 'white' : '#f8f8f8'
+  },
+  
+  eventosTableDataCell: {
+    padding: '6px',
+    textAlign: 'center',
+    borderBottom: '1px solid #eee',
+    borderRight: '1px solid #eee',
+    fontSize: '0.8rem'
+  },
+  
+  eventosTableDataCellWide: {
+    padding: '6px',
+    textAlign: 'center',
+    borderBottom: '1px solid #eee',
+    borderRight: '1px solid #eee',
+    fontSize: '0.8rem',
+    minWidth: '120px'
+  },
+  
+  eventosTableDataCellHighlighted: {
+    padding: '6px',
+    textAlign: 'center',
+    borderBottom: '1px solid #eee',
+    borderRight: '1px solid #eee',
+    fontSize: '0.8rem',
+    color: (value) => value > 0 ? '#2e7d32' : 'inherit'
+  },
+  
+  eventosTableDataCellLeft: {
+    padding: '6px',
+    textAlign: 'left',
+    borderBottom: '1px solid #eee',
+    fontSize: '0.8rem'
+  },
+  
+  eventosTableNoDataCell: {
+    padding: '20px',
+    textAlign: 'center',
+    color: '#999',
+    fontSize: '0.9rem',
+    border: '1px solid #eee'
+  },
+  
   tableDataCellLeft: {
     padding: '12px 16px',
     borderBottom: '1px solid #e9ecef',

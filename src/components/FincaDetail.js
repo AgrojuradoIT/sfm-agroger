@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { FaAngleRight, FaCalendarAlt, FaUser, FaExclamationTriangle, FaCalendar, FaClock, FaIdCard, FaUserAlt, FaChartBar, FaTimes, FaListAlt } from 'react-icons/fa';
+import { FaAngleRight, FaCalendarAlt, FaUser, FaExclamationTriangle, FaCalendar, FaClock, FaIdCard, FaUserAlt, FaChartBar, FaTimes, FaListAlt, FaFileExcel } from 'react-icons/fa';
 import { Card, CardContent, Typography, Grid, LinearProgress, Box, Chip, Divider, Paper, Button, Modal, Tooltip } from '@mui/material';
 import { styles } from '../styles/FincaDetail.styles';
+import '../styles/animations.css';
 import {
   FilterPanel,
   EvaluationsPanel,
@@ -28,6 +29,7 @@ import {
   NoSignatureText
 } from '../styles/FincaDetail.styles';
 import fincaService from '../services/fincaService';
+import * as XLSX from 'xlsx';
 import { calcularMetricasPolinizacion } from '../utils/calculosPolinizacion';
 
 // Mapeo de letras a IDs de finca
@@ -265,6 +267,122 @@ const FincaDetail = () => {
     setMensaje('');
     // Volver a cargar los datos
     fetchData();
+  };
+
+  const exportToExcel = () => {
+    try {
+      // Verificar que haya una evaluación seleccionada
+      if (!selectedEvaluation) {
+        console.error('No hay evaluación seleccionada para exportar');
+        alert('Seleccione una evaluación para exportar a Excel');
+        return;
+      }
+      
+      console.log('Exportando evaluación seleccionada a Excel:', selectedEvaluation);
+      
+      // Crear un array para los datos a exportar
+      const datosParaExportar = [];
+      
+      // Verificar si la evaluación seleccionada tiene evaluaciones de polinización
+      if (selectedEvaluation.evaluacionesPolinizacion && selectedEvaluation.evaluacionesPolinizacion.length > 0) {
+        // Para cada evaluación de polinización, crear una fila en el Excel
+        selectedEvaluation.evaluacionesPolinizacion.forEach((evaluacion, index) => {
+          // Depuración detallada de los campos problemáticos
+          console.log(`Evaluación #${index+1} - Campos importantes:`);
+          console.log('antesisDejadas:', evaluacion.antesisDejadas);
+          console.log('postantesis:', evaluacion.postantesis);
+          console.log('postantesisDejadas:', evaluacion.postantesisDejadas);
+          
+          // Crear objeto para exportar con verificación de campos
+          const filaExcel = {
+            'Fecha': selectedEvaluation.fecha || '',
+            'Hora': selectedEvaluation.hora || '',
+            'Semana': selectedEvaluation.semana || '',
+            'Ubicación': evaluacion.ubicacion || '',
+            'Lote': evaluacion.lote || selectedEvaluation.lote || '',
+            'Sección': evaluacion.seccion || '',
+            'Palma': evaluacion.palma || '',
+            'Inflorescencia': evaluacion.inflorescencia || '0',
+            'Antesis': evaluacion.antesis || '0',
+            'Antesis Dejadas': evaluacion.antesisDejadas || '0',
+            'Post Antesis': evaluacion.postantesis || '0',
+            'Post Antesis Dejadas': evaluacion.postantesisDejadas || '0',
+            'Espate': evaluacion.espate || '0',
+            'Aplicación': evaluacion.aplicacion || '0',
+            'Marcación': evaluacion.marcacion || '0',
+            'Repaso 1': evaluacion.repaso1 || '0',
+            'Repaso 2': evaluacion.repaso2 || '0',
+            'Observaciones': evaluacion.observaciones || '-',
+            'Evaluador': selectedEvaluation.evaluador || selectedEvaluation.polinizador || '',
+            'Foto URL': selectedEvaluation.fotopach || '',
+            'Firma URL': selectedEvaluation.firmapach || ''
+          };
+          
+          // Verificar que los campos problemáticos estén presentes
+          console.log('Campos en la fila Excel:', {
+            'Antesis Dejadas': filaExcel['Antesis Dejadas'],
+            'Post Antesis': filaExcel['Post Antesis'],
+            'Post Antesis Dejadas': filaExcel['Post Antesis Dejadas']
+          });
+          
+          datosParaExportar.push(filaExcel);
+        });
+      } else {
+        // Si no tiene evaluaciones de polinización, exportar la evaluación principal
+        console.log('Exportando evaluación principal (sin evaluaciones de polinización)');
+        console.log('Campos importantes:');
+        console.log('antesisDejadas:', selectedEvaluation.antesisDejadas);
+        console.log('postantesis:', selectedEvaluation.postantesis);
+        console.log('postantesisDejadas:', selectedEvaluation.postantesisDejadas);
+        
+        datosParaExportar.push({
+          'Fecha': selectedEvaluation.fecha || '',
+          'Hora': selectedEvaluation.hora || '',
+          'Semana': selectedEvaluation.semana || '',
+          'Ubicación': selectedEvaluation.ubicacion || '',
+          'Lote': selectedEvaluation.lote || '',
+          'Sección': selectedEvaluation.seccion || '',
+          'Palma': selectedEvaluation.palma || '',
+          'Inflorescencia': selectedEvaluation.inflorescencia || '0',
+          'Antesis': selectedEvaluation.antesis || '0',
+          'Antesis Dejadas': selectedEvaluation.antesisDejadas || '0',
+          'Post Antesis': selectedEvaluation.postantesis || '0',
+          'Post Antesis Dejadas': selectedEvaluation.postantesisDejadas || '0',
+          'Espate': selectedEvaluation.espate || '0',
+          'Aplicación': selectedEvaluation.aplicacion || '0',
+          'Marcación': selectedEvaluation.marcacion || '0',
+          'Repaso 1': selectedEvaluation.repaso1 || '0',
+          'Repaso 2': selectedEvaluation.repaso2 || '0',
+          'Observaciones': selectedEvaluation.observaciones || '-',
+          'Evaluador': selectedEvaluation.evaluador || selectedEvaluation.polinizador || '',
+          'Foto URL': selectedEvaluation.fotopach || '',
+          'Firma URL': selectedEvaluation.firmapach || ''
+        });
+      }
+      
+      console.log('Datos preparados para exportar:', datosParaExportar);
+      
+      if (datosParaExportar.length === 0) {
+        console.error('No hay datos detallados para exportar');
+        alert('No hay datos detallados disponibles para exportar');
+        return;
+      }
+      
+      const worksheet = XLSX.utils.json_to_sheet(datosParaExportar);
+      
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Evaluaciones');
+      
+      // Crear nombre del archivo con la fecha de la evaluación
+      const nombreArchivo = `evaluacion_${selectedEvaluation.fecha.replace(/\//g, '-')}_${FINCA_ID_MAP[id?.toLowerCase()]}.xlsx`;
+      
+      console.log('Guardando archivo:', nombreArchivo);
+      XLSX.writeFile(workbook, nombreArchivo);
+      console.log('Archivo Excel exportado correctamente');
+    } catch (error) {
+      console.error('Error al exportar a Excel:', error);
+      alert('Error al exportar datos: ' + error.message);
+    }
   };
 
   if (isLoading) {
@@ -915,9 +1033,9 @@ const FincaDetail = () => {
                                       backgroundColor: 'white',
                                       padding: '22px',
                                       borderRadius: '12px',
-                                      boxShadow: '0 3px 6px rgba(0,0,0,0.08)',
-                                      margin: '4px',
-                                      border: '1px solid #f0f0f0',
+                                      boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+                                      margin: '0',
+                                      border: 'none',
                                       display: 'flex',
                                       flexDirection: 'column',
                                       height: '100%',
@@ -1018,9 +1136,9 @@ const FincaDetail = () => {
                                         backgroundColor: 'white',
                                         padding: '22px',
                                         borderRadius: '12px',
-                                        boxShadow: '0 3px 6px rgba(0,0,0,0.08)',
+                                        boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
                                         margin: 0,
-                                        border: '1px solid #f0f0f0',
+                                        border: 'none',
                                         display: 'flex',
                                         flexDirection: 'column',
                                         height: '100%',
@@ -1105,9 +1223,9 @@ const FincaDetail = () => {
                                         backgroundColor: 'white',
                                         padding: '22px',
                                         borderRadius: '12px',
-                                        boxShadow: '0 3px 6px rgba(0,0,0,0.08)',
+                                        boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
                                         margin: 0,
-                                        border: '1px solid #f0f0f0',
+                                        border: 'none',
                                         display: 'flex',
                                         flexDirection: 'column',
                                         height: '100%',
@@ -1183,62 +1301,151 @@ const FincaDetail = () => {
                           </Grid>
                           
                           {/* Sumas de métricas */}
-                          <Grid item xs={12} sx={{ mt: 6, mb: 2 }}>
-                            <Typography variant="h6" style={{marginBottom: '20px', fontWeight: '500', color: '#424242'}}>
+                          <Grid item xs={12} sx={styles.metricsContainer}>
+                            <Typography variant="h6" style={styles.sectionTitle}>
                               Valores Totales
                             </Typography>
                             
-                            <Grid container spacing={4} sx={{ margin: '0 -8px' }}>
+                            {/* LÍNEA 1: Total Eventos - Suma Inflorescencia - Eventos Repaso 1 - Eventos Repaso 2 */}
+                            <Grid container spacing={2} sx={styles.metricsRow}>
                               {[
                                 { label: 'Total Eventos', value: metricas.sumaEventos, color: '#4caf50' },
-                                { label: 'Suma Antesis', value: metricas.sumaAntesis, color: '#2196f3' },
-                                { label: 'Suma Post Antesis', value: metricas.sumaPostAntesis, color: '#3f51b5' },
-                                { label: 'Suma Antesis Dejadas', value: metricas.sumaAntesisDejadas, color: '#009688' },
-                                { label: 'Suma Post Antesis Dejadas', value: metricas.sumaPostAntesisDejadas, color: '#ff9800' },
-                                { label: 'Suma Inflorescencia', value: metricas.sumaInflorescencia, color: '#9c27b0' },
-                                { label: 'Suma Aplicación', value: metricas.sumaAplicacion, color: '#f44336' },
-                                { label: 'Suma Marcación', value: metricas.sumaMarcacion, color: '#795548' },
-                                { label: 'Suma Espate', value: metricas.sumaEspate, color: '#607d8b' },
-                                { label: 'Suma Repaso 1', value: metricas.sumaRepaso1, color: '#8bc34a' },
-                                { label: 'Suma Repaso 2', value: metricas.sumaRepaso2, color: '#ffc107' }
+                                { label: 'Inflorescencia', value: metricas.sumaInflorescencia, color: '#9c27b0' },
+                                { label: 'Eventos Repaso 1', value: metricas.EventosRepaso1, color: '#3f51b5' },
+                                { label: 'Eventos Repaso 2', value: metricas.EventosRepaso2, color: '#009688' }
                               ].map((item) => (
-                                <Grid item xs={12} sm={6} md={4} key={item.label} sx={{ padding: '12px' }}>
+                                <Grid item xs={6} sm={3} md={3} key={item.label} sx={styles.metricsItemContainer}>
                                   <Box
-                                    sx={{
-                                      display: 'flex',
-                                      flexDirection: 'column',
-                                      alignItems: 'center',
-                                      backgroundColor: 'white',
-                                      padding: '24px',
-                                      borderRadius: 2,
-                                      boxShadow: '0 3px 6px rgba(0,0,0,0.08)',
-                                      transition: 'transform 0.2s, box-shadow 0.2s',
-                                      '&:hover': {
-                                        transform: 'translateY(-3px)',
-                                        boxShadow: '0 4px 8px rgba(0,0,0,0.15)'
-                                      },
-                                      position: 'relative',
-                                      overflow: 'hidden',
-                                      border: '1px solid #f0f0f0',
-                                      margin: '4px'
-                                    }}
+                                    sx={styles.valoresTotalesCard}
                                   >
                                     <div style={{
-                                      position: 'absolute',
-                                      top: 0,
-                                      left: 0,
-                                      width: '100%',
-                                      height: '4px',
+                                      ...styles.valoresTotalesColorBar,
                                       backgroundColor: item.color
                                     }}></div>
                                     
-                                    <Typography variant="h4" style={{color: item.color, fontWeight: 'bold', marginBottom: '10px'}}>
+                                    <Typography variant="h4" style={{
+                                      ...styles.valoresTotalesValue,
+                                      color: item.color
+                                    }}>
                                       {item.value}
                                     </Typography>
                                     
-                                    <Typography variant="body2" style={{color: '#666', textAlign: 'center', padding: '0 5px'}}>
+                                    <Typography variant="body2" style={{
+                                      ...styles.valoresTotalesLabel,
+                                      color: item.color
+                                    }}>
                                       {item.label}
                                     </Typography>
+                                    
+
+                                  </Box>
+                                </Grid>
+                              ))}
+                            </Grid>
+                            
+                            {/* LÍNEA 2: Suma Antesis - Suma Post Antesis - Suma Antesis Dejadas - Suma Post Antesis Dejadas */}
+                            <Grid container spacing={2} sx={styles.metricsRow}>
+                              {[
+                                { label: 'Antesis', value: metricas.sumaAntesis, color: '#2196f3' },
+                                { label: 'Post Antesis', value: metricas.sumaPostAntesis, color: '#3f51b5' },
+                                { label: 'Antesis Dejadas', value: metricas.sumaAntesisDejadas, color: '#009688' },
+                                { label: 'Post Antesis Dejadas', value: metricas.sumaPostAntesisDejadas, color: '#ff9800' }
+                              ].map((item) => (
+                                <Grid item xs={6} sm={3} md={3} key={item.label} sx={styles.metricsItemContainer}>
+                                  <Box
+                                    sx={styles.valoresTotalesCard}
+                                  >
+                                    <div style={{
+                                      ...styles.valoresTotalesColorBar,
+                                      backgroundColor: item.color
+                                    }}></div>
+                                    
+                                    <Typography variant="h4" style={{
+                                      ...styles.valoresTotalesValue,
+                                      color: item.color
+                                    }}>
+                                      {item.value}
+                                    </Typography>
+                                    
+                                    <Typography variant="body2" style={{
+                                      ...styles.valoresTotalesLabel,
+                                      color: item.color
+                                    }}>
+                                      {item.label}
+                                    </Typography>
+                                    
+
+                                  </Box>
+                                </Grid>
+                              ))}
+                            </Grid>
+                            
+                            {/* LÍNEA 3: Suma Aplicación - Suma Marcación - Suma Espate */}
+                            <Grid container spacing={2} sx={styles.metricsRow}>
+                              {[
+                                { label: 'Aplicación', value: metricas.sumaAplicacion, color: '#f44336' },
+                                { label: 'Marcación', value: metricas.sumaMarcacion, color: '#795548' },
+                                { label: 'Espate', value: metricas.sumaEspate, color: '#607d8b' }
+                              ].map((item) => (
+                                <Grid item xs={6} sm={4} md={4} key={item.label} sx={styles.metricsItemContainer}>
+                                  <Box
+                                    sx={styles.valoresTotalesCard}
+                                  >
+                                    <div style={{
+                                      ...styles.valoresTotalesColorBar,
+                                      backgroundColor: item.color
+                                    }}></div>
+                                    
+                                    <Typography variant="h4" style={{
+                                      ...styles.valoresTotalesValue,
+                                      color: item.color
+                                    }}>
+                                      {item.value}
+                                    </Typography>
+                                    
+                                    <Typography variant="body2" style={{
+                                      ...styles.valoresTotalesLabel,
+                                      color: item.color
+                                    }}>
+                                      {item.label}
+                                    </Typography>
+                                    
+
+                                  </Box>
+                                </Grid>
+                              ))}
+                            </Grid>
+                            
+                            {/* LÍNEA 4: Suma Repaso 1 - Suma Repaso 2 */}
+                            <Grid container spacing={2} sx={styles.metricsRow}>
+                              {[
+                                { label: 'Repaso 1', value: metricas.sumaRepaso1, color: '#8bc34a' },
+                                { label: 'Repaso 2', value: metricas.sumaRepaso2, color: '#ffc107' }
+                              ].map((item) => (
+                                <Grid item xs={6} sm={6} md={6} key={item.label} sx={styles.metricsItemContainer}>
+                                  <Box
+                                    sx={styles.valoresTotalesCard}
+                                  >
+                                    <div style={{
+                                      ...styles.valoresTotalesColorBar,
+                                      backgroundColor: item.color
+                                    }}></div>
+                                    
+                                    <Typography variant="h4" style={{
+                                      ...styles.valoresTotalesValue,
+                                      color: item.color
+                                    }}>
+                                      {item.value}
+                                    </Typography>
+                                    
+                                    <Typography variant="body2" style={{
+                                      ...styles.valoresTotalesLabel,
+                                      color: item.color
+                                    }}>
+                                      {item.label}
+                                    </Typography>
+                                    
+
                                   </Box>
                                 </Grid>
                               ))}
@@ -1263,6 +1470,16 @@ const FincaDetail = () => {
         </DetailPanel>
       </PanelsContainer>
 
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', padding: '8px' }}>
+        <Button 
+          variant="contained" 
+          onClick={exportToExcel}
+          startIcon={<FaFileExcel />}
+        >
+          Exportar a Excel
+        </Button>
+      </Box>
+
       {/* Modal para mostrar la tabla de eventos */}
       <Modal
         open={modalAbierto}
@@ -1285,88 +1502,71 @@ const FincaDetail = () => {
           flexDirection: 'column',
           overflow: 'hidden'
         }}>
-          <Box sx={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            padding: '12px 16px',
-            borderBottom: '1px solid #eee'
-          }}>
-            <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#444' }}>
+          <Box sx={styles.eventosModalHeader}>
+            <Typography variant="h6" sx={styles.eventosModalTitle}>
               Eventos de Evaluación
             </Typography>
             <Button
               onClick={() => setModalAbierto(false)}
               variant="text"
               size="small"
-              sx={{
-                minWidth: '40px',
-                width: '40px',
-                height: '40px',
-                borderRadius: '50%',
-                color: '#777',
-                padding: 0,
-                '&:hover': {
-                  color: '#f44336',
-                  backgroundColor: 'rgba(0,0,0,0.03)'
-                }
-              }}
+              sx={styles.eventosModalCloseButton}
             >
               <FaTimes style={{ fontSize: '18px' }} />
             </Button>
           </Box>
           
-          <Box sx={{ flex: 1, overflow: 'auto', padding: '0 8px' }}>
-            <Box sx={{ minWidth: '100%' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '8px', border: '1px solid #ddd' }}>
+          <Box sx={styles.eventosModalContent}>
+            <Box sx={styles.eventosModalTableContainer}>
+              <table style={styles.eventosTable}>
                 <thead>
-                  <tr style={{ backgroundColor: '#f5f5f5', position: 'sticky', top: 0 }}>
-                    <th style={{ padding: '6px', textAlign: 'center', borderBottom: '1px solid #ddd', borderRight: '1px solid #ddd', fontWeight: 'bold', fontSize: '0.8rem', whiteSpace: 'nowrap', position: 'sticky', top: 0, backgroundColor: '#f5f5f5', zIndex: 1 }}>Fecha</th>
-                    <th style={{ padding: '6px', textAlign: 'center', borderBottom: '1px solid #ddd', borderRight: '1px solid #ddd', fontWeight: 'bold', fontSize: '0.8rem', whiteSpace: 'nowrap', position: 'sticky', top: 0, backgroundColor: '#f5f5f5', zIndex: 1 }}>Hora</th>
-                    <th style={{ padding: '6px', textAlign: 'center', borderBottom: '1px solid #ddd', borderRight: '1px solid #ddd', fontWeight: 'bold', fontSize: '0.8rem', whiteSpace: 'nowrap', position: 'sticky', top: 0, backgroundColor: '#f5f5f5', zIndex: 1 }}>Semana</th>
-                    <th style={{ padding: '6px', textAlign: 'center', borderBottom: '1px solid #ddd', borderRight: '1px solid #ddd', fontWeight: 'bold', fontSize: '0.8rem', whiteSpace: 'nowrap', position: 'sticky', top: 0, backgroundColor: '#f5f5f5', zIndex: 1 }}>Ubicación</th>
-                    <th style={{ padding: '6px', textAlign: 'center', borderBottom: '1px solid #ddd', borderRight: '1px solid #ddd', fontWeight: 'bold', fontSize: '0.8rem', whiteSpace: 'nowrap', position: 'sticky', top: 0, backgroundColor: '#f5f5f5', zIndex: 1, minWidth: '120px' }}>Lote</th>
-                    <th style={{ padding: '6px', textAlign: 'center', borderBottom: '1px solid #ddd', borderRight: '1px solid #ddd', fontWeight: 'bold', fontSize: '0.8rem', whiteSpace: 'nowrap', position: 'sticky', top: 0, backgroundColor: '#f5f5f5', zIndex: 1 }}>Sección</th>
-                    <th style={{ padding: '6px', textAlign: 'center', borderBottom: '1px solid #ddd', borderRight: '1px solid #ddd', fontWeight: 'bold', fontSize: '0.8rem', whiteSpace: 'nowrap', position: 'sticky', top: 0, backgroundColor: '#f5f5f5', zIndex: 1 }}>Palma</th>
-                    <th style={{ padding: '6px', textAlign: 'center', borderBottom: '1px solid #ddd', borderRight: '1px solid #ddd', fontWeight: 'bold', fontSize: '0.8rem', whiteSpace: 'nowrap', position: 'sticky', top: 0, backgroundColor: '#f5f5f5', zIndex: 1 }}>Inflorescencia</th>
-                    <th style={{ padding: '6px', textAlign: 'center', borderBottom: '1px solid #ddd', borderRight: '1px solid #ddd', fontWeight: 'bold', fontSize: '0.8rem', whiteSpace: 'nowrap', position: 'sticky', top: 0, backgroundColor: '#f5f5f5', zIndex: 1 }}>Antesis</th>
-                    <th style={{ padding: '6px', textAlign: 'center', borderBottom: '1px solid #ddd', borderRight: '1px solid #ddd', fontWeight: 'bold', fontSize: '0.8rem', whiteSpace: 'nowrap', position: 'sticky', top: 0, backgroundColor: '#f5f5f5', zIndex: 1 }}>Antesis Dejadas</th>
-                    <th style={{ padding: '6px', textAlign: 'center', borderBottom: '1px solid #ddd', borderRight: '1px solid #ddd', fontWeight: 'bold', fontSize: '0.8rem', whiteSpace: 'nowrap', position: 'sticky', top: 0, backgroundColor: '#f5f5f5', zIndex: 1 }}>Post Antesis</th>
-                    <th style={{ padding: '6px', textAlign: 'center', borderBottom: '1px solid #ddd', borderRight: '1px solid #ddd', fontWeight: 'bold', fontSize: '0.8rem', whiteSpace: 'nowrap', position: 'sticky', top: 0, backgroundColor: '#f5f5f5', zIndex: 1 }}>Post Antesis Dejadas</th>
-                    <th style={{ padding: '6px', textAlign: 'center', borderBottom: '1px solid #ddd', borderRight: '1px solid #ddd', fontWeight: 'bold', fontSize: '0.8rem', whiteSpace: 'nowrap', position: 'sticky', top: 0, backgroundColor: '#f5f5f5', zIndex: 1 }}>Espate</th>
-                    <th style={{ padding: '6px', textAlign: 'center', borderBottom: '1px solid #ddd', borderRight: '1px solid #ddd', fontWeight: 'bold', fontSize: '0.8rem', whiteSpace: 'nowrap', position: 'sticky', top: 0, backgroundColor: '#f5f5f5', zIndex: 1 }}>Aplicación</th>
-                    <th style={{ padding: '6px', textAlign: 'center', borderBottom: '1px solid #ddd', borderRight: '1px solid #ddd', fontWeight: 'bold', fontSize: '0.8rem', whiteSpace: 'nowrap', position: 'sticky', top: 0, backgroundColor: '#f5f5f5', zIndex: 1 }}>Marcación</th>
-                    <th style={{ padding: '6px', textAlign: 'center', borderBottom: '1px solid #ddd', borderRight: '1px solid #ddd', fontWeight: 'bold', fontSize: '0.8rem', whiteSpace: 'nowrap', position: 'sticky', top: 0, backgroundColor: '#f5f5f5', zIndex: 1 }}>Repaso 1</th>
-                    <th style={{ padding: '6px', textAlign: 'center', borderBottom: '1px solid #ddd', borderRight: '1px solid #ddd', fontWeight: 'bold', fontSize: '0.8rem', whiteSpace: 'nowrap', position: 'sticky', top: 0, backgroundColor: '#f5f5f5', zIndex: 1 }}>Repaso 2</th>
-                    <th style={{ padding: '6px', textAlign: 'center', borderBottom: '1px solid #ddd', fontWeight: 'bold', fontSize: '0.8rem', whiteSpace: 'nowrap', position: 'sticky', top: 0, backgroundColor: '#f5f5f5', zIndex: 1 }}>Observaciones</th>
+                  <tr style={styles.eventosTableHeaderRow}>
+                    <th style={styles.eventosTableHeaderCell}>Fecha</th>
+                    <th style={styles.eventosTableHeaderCell}>Hora</th>
+                    <th style={styles.eventosTableHeaderCell}>Semana</th>
+                    <th style={styles.eventosTableHeaderCell}>Ubicación</th>
+                    <th style={styles.eventosTableHeaderCellWide}>Lote</th>
+                    <th style={styles.eventosTableHeaderCell}>Sección</th>
+                    <th style={styles.eventosTableHeaderCell}>Palma</th>
+                    <th style={styles.eventosTableHeaderCell}>Inflorescencia</th>
+                    <th style={styles.eventosTableHeaderCell}>Antesis</th>
+                    <th style={styles.eventosTableHeaderCell}>Antesis Dejadas</th>
+                    <th style={styles.eventosTableHeaderCell}>Post Antesis</th>
+                    <th style={styles.eventosTableHeaderCell}>Post Antesis Dejadas</th>
+                    <th style={styles.eventosTableHeaderCell}>Espate</th>
+                    <th style={styles.eventosTableHeaderCell}>Aplicación</th>
+                    <th style={styles.eventosTableHeaderCell}>Marcación</th>
+                    <th style={styles.eventosTableHeaderCell}>Repaso 1</th>
+                    <th style={styles.eventosTableHeaderCell}>Repaso 2</th>
+                    <th style={styles.eventosTableHeaderCell}>Observaciones</th>
                   </tr>
                 </thead>
                 <tbody>
                   {selectedEvaluation && selectedEvaluation.evaluacionesPolinizacion && selectedEvaluation.evaluacionesPolinizacion.map((evaluacion, index) => (
-                    <tr key={index} style={{ backgroundColor: index % 2 === 0 ? 'white' : '#f8f8f8' }}>
-                      <td style={{ padding: '6px', textAlign: 'center', borderBottom: '1px solid #eee', borderRight: '1px solid #eee', fontSize: '0.8rem' }}>{selectedEvaluation.fecha}</td>
-                      <td style={{ padding: '6px', textAlign: 'center', borderBottom: '1px solid #eee', borderRight: '1px solid #eee', fontSize: '0.8rem' }}>{selectedEvaluation.hora}</td>
-                      <td style={{ padding: '6px', textAlign: 'center', borderBottom: '1px solid #eee', borderRight: '1px solid #eee', fontSize: '0.8rem' }}>{selectedEvaluation.semana}</td>
-                      <td style={{ padding: '6px', textAlign: 'center', borderBottom: '1px solid #eee', borderRight: '1px solid #eee', fontSize: '0.8rem' }}>{evaluacion.ubicacion || '-'}</td>
-                      <td style={{ padding: '6px', textAlign: 'center', borderBottom: '1px solid #eee', borderRight: '1px solid #eee', fontSize: '0.8rem', minWidth: '120px' }}>{evaluacion.lote || selectedEvaluation.lote || '-'}</td>
-                      <td style={{ padding: '6px', textAlign: 'center', borderBottom: '1px solid #eee', borderRight: '1px solid #eee', fontSize: '0.8rem' }}>{evaluacion.seccion || '-'}</td>
-                      <td style={{ padding: '6px', textAlign: 'center', borderBottom: '1px solid #eee', borderRight: '1px solid #eee', fontSize: '0.8rem' }}>{evaluacion.palma || '-'}</td>
-                      <td style={{ padding: '6px', textAlign: 'center', borderBottom: '1px solid #eee', borderRight: '1px solid #eee', fontSize: '0.8rem', color: evaluacion.inflorescencia > 0 ? '#2e7d32' : 'inherit' }}>{evaluacion.inflorescencia || '0'}</td>
-                      <td style={{ padding: '6px', textAlign: 'center', borderBottom: '1px solid #eee', borderRight: '1px solid #eee', fontSize: '0.8rem', color: evaluacion.antesis > 0 ? '#2e7d32' : 'inherit' }}>{evaluacion.antesis || '0'}</td>
-                      <td style={{ padding: '6px', textAlign: 'center', borderBottom: '1px solid #eee', borderRight: '1px solid #eee', fontSize: '0.8rem', color: evaluacion.antesisDejadas > 0 ? '#2e7d32' : 'inherit' }}>{evaluacion.antesisDejadas || '0'}</td>
-                      <td style={{ padding: '6px', textAlign: 'center', borderBottom: '1px solid #eee', borderRight: '1px solid #eee', fontSize: '0.8rem', color: evaluacion.postantesis > 0 ? '#2e7d32' : 'inherit' }}>{evaluacion.postantesis || '0'}</td>
-                      <td style={{ padding: '6px', textAlign: 'center', borderBottom: '1px solid #eee', borderRight: '1px solid #eee', fontSize: '0.8rem', color: evaluacion.postantesisDejadas > 0 ? '#2e7d32' : 'inherit' }}>{evaluacion.postantesisDejadas || '0'}</td>
-                      <td style={{ padding: '6px', textAlign: 'center', borderBottom: '1px solid #eee', borderRight: '1px solid #eee', fontSize: '0.8rem', color: evaluacion.espate > 0 ? '#2e7d32' : 'inherit' }}>{evaluacion.espate || '0'}</td>
-                      <td style={{ padding: '6px', textAlign: 'center', borderBottom: '1px solid #eee', borderRight: '1px solid #eee', fontSize: '0.8rem', color: evaluacion.aplicacion > 0 ? '#2e7d32' : 'inherit' }}>{evaluacion.aplicacion || '0'}</td>
-                      <td style={{ padding: '6px', textAlign: 'center', borderBottom: '1px solid #eee', borderRight: '1px solid #eee', fontSize: '0.8rem', color: evaluacion.marcacion > 0 ? '#2e7d32' : 'inherit' }}>{evaluacion.marcacion || '0'}</td>
-                      <td style={{ padding: '6px', textAlign: 'center', borderBottom: '1px solid #eee', borderRight: '1px solid #eee', fontSize: '0.8rem', color: evaluacion.repaso1 > 0 ? '#2e7d32' : 'inherit' }}>{evaluacion.repaso1 || '0'}</td>
-                      <td style={{ padding: '6px', textAlign: 'center', borderBottom: '1px solid #eee', borderRight: '1px solid #eee', fontSize: '0.8rem', color: evaluacion.repaso2 > 0 ? '#2e7d32' : 'inherit' }}>{evaluacion.repaso2 || '0'}</td>
-                      <td style={{ padding: '6px', textAlign: 'left', borderBottom: '1px solid #eee', fontSize: '0.8rem' }}>{evaluacion.observaciones || '-'}</td>
+                    <tr key={index} style={{ ...styles.eventosTableRowAlternate, backgroundColor: index % 2 === 0 ? 'white' : '#f8f8f8' }}>
+                      <td style={styles.eventosTableDataCell}>{selectedEvaluation.fecha}</td>
+                      <td style={styles.eventosTableDataCell}>{selectedEvaluation.hora}</td>
+                      <td style={styles.eventosTableDataCell}>{selectedEvaluation.semana}</td>
+                      <td style={styles.eventosTableDataCell}>{evaluacion.ubicacion || '-'}</td>
+                      <td style={styles.eventosTableDataCellWide}>{evaluacion.lote || selectedEvaluation.lote || '-'}</td>
+                      <td style={styles.eventosTableDataCell}>{evaluacion.seccion || '-'}</td>
+                      <td style={styles.eventosTableDataCell}>{evaluacion.palma || '-'}</td>
+                      <td style={{ ...styles.eventosTableDataCell, color: evaluacion.inflorescencia > 0 ? '#2e7d32' : 'inherit' }}>{evaluacion.inflorescencia || '0'}</td>
+                      <td style={{ ...styles.eventosTableDataCell, color: evaluacion.antesis > 0 ? '#2e7d32' : 'inherit' }}>{evaluacion.antesis || '0'}</td>
+                      <td style={{ ...styles.eventosTableDataCell, color: evaluacion.antesisDejadas > 0 ? '#2e7d32' : 'inherit' }}>{evaluacion.antesisDejadas || '0'}</td>
+                      <td style={{ ...styles.eventosTableDataCell, color: evaluacion.postantesis > 0 ? '#2e7d32' : 'inherit' }}>{evaluacion.postantesis || '0'}</td>
+                      <td style={{ ...styles.eventosTableDataCell, color: evaluacion.postantesisDejadas > 0 ? '#2e7d32' : 'inherit' }}>{evaluacion.postantesisDejadas || '0'}</td>
+                      <td style={{ ...styles.eventosTableDataCell, color: evaluacion.espate > 0 ? '#2e7d32' : 'inherit' }}>{evaluacion.espate || '0'}</td>
+                      <td style={{ ...styles.eventosTableDataCell, color: evaluacion.aplicacion > 0 ? '#2e7d32' : 'inherit' }}>{evaluacion.aplicacion || '0'}</td>
+                      <td style={{ ...styles.eventosTableDataCell, color: evaluacion.marcacion > 0 ? '#2e7d32' : 'inherit' }}>{evaluacion.marcacion || '0'}</td>
+                      <td style={{ ...styles.eventosTableDataCell, color: evaluacion.repaso1 > 0 ? '#2e7d32' : 'inherit' }}>{evaluacion.repaso1 || '0'}</td>
+                      <td style={{ ...styles.eventosTableDataCell, color: evaluacion.repaso2 > 0 ? '#2e7d32' : 'inherit' }}>{evaluacion.repaso2 || '0'}</td>
+                      <td style={styles.eventosTableDataCellLeft}>{evaluacion.observaciones || '-'}</td>
                     </tr>
                   ))}
                   {(!selectedEvaluation || !selectedEvaluation.evaluacionesPolinizacion || selectedEvaluation.evaluacionesPolinizacion.length === 0) && (
                     <tr>
-                      <td colSpan="18" style={{ padding: '20px', textAlign: 'center', color: '#999', fontSize: '0.9rem', border: '1px solid #eee' }}>
+                      <td colSpan="18" style={styles.eventosTableNoDataCell}>
                         No hay datos disponibles
                       </td>
                     </tr>
@@ -1375,6 +1575,19 @@ const FincaDetail = () => {
               </table>
             </Box>
           </Box>
+          
+          {/* Add export button */}
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', padding: '16px' }}>
+            <Button 
+              variant="contained" 
+              onClick={exportToExcel}
+              startIcon={<FaFileExcel />}
+              sx={styles.actionButton}
+            >
+              Exportar a Excel
+            </Button>
+          </Box>
+          
         </Box>
       </Modal>
     </>
