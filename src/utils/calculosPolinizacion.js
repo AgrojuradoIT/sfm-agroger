@@ -49,20 +49,41 @@ export const calcularMetricasPolinizacion = (evaluaciones) => {
   const sumaRepaso1 = evaluaciones.reduce((sum, ev) => sum + (ev.repaso1 || 0), 0);
   const sumaRepaso2 = evaluaciones.reduce((sum, ev) => sum + (ev.repaso2 || 0), 0);
   
+  // Función para verificar si un valor no está vacío, nulo o undefined
+  // Los ceros sí cuentan como valores válidos
+  const esValorValido = (valor) => {
+    if (valor === null || valor === undefined) return false;
+    if (valor === '' || valor === ' ') return false;
+    // El valor 0 es considerado válido
+    if (valor === 0 || valor === '0') return true;
+    return true;
+  };
+
   // Cuenta la cantidad de datos que hay en la columna Repaso 1 (los nulos o blancos no se cuentan)
+  // Los ceros sí cuentan como eventos válidos
   const EventosRepaso1 = evaluaciones.reduce((count, ev) => {
-    return ev.repaso1 !== null && ev.repaso1 !== undefined ? count + 1 : count;
+    // Si el valor es 0 o existe y no es nulo/undefined/vacío, lo contamos
+    return (ev.repaso1 === 0 || esValorValido(ev.repaso1)) ? count + 1 : count;
   }, 0);
   
   // Cuenta la cantidad de datos que hay en la columna Repaso 2 (los nulos o blancos no se cuentan)
+  // Los ceros sí cuentan como eventos válidos
   const EventosRepaso2 = evaluaciones.reduce((count, ev) => {
-    return ev.repaso2 !== null && ev.repaso2 !== undefined ? count + 1 : count;
+    // Si el valor es 0 o existe y no es nulo/undefined/vacío, lo contamos
+    return (ev.repaso2 === 0 || esValorValido(ev.repaso2)) ? count + 1 : count;
   }, 0);
   
   // Registrar en consola para depuración
   console.log(`Total de eventos con Repaso 1 válido (incluyendo ceros): ${EventosRepaso1}`);
   console.log(`Total de eventos con Repaso 2 válido (incluyendo ceros): ${EventosRepaso2}`);
   console.log(`Total de evaluaciones: ${evaluaciones.length}`);
+  console.log(`Suma Repaso 1: ${sumaRepaso1}`);
+  console.log(`Suma Repaso 2: ${sumaRepaso2}`);
+  
+  // Depuración detallada de los valores de repaso1 y repaso2
+  evaluaciones.forEach((ev, index) => {
+    console.log(`Evaluación ${index}: repaso1=${ev.repaso1} (${typeof ev.repaso1}), repaso2=${ev.repaso2} (${typeof ev.repaso2})`);
+  });
 
   // 12-13. Porcentajes de antesis y post-antesis dejadas
   const porcentajeAntesisDejadas = sumaInflorescencia > 0 
@@ -86,13 +107,39 @@ export const calcularMetricasPolinizacion = (evaluaciones) => {
     ? (5 / sumaEventos) * (sumaEventos - sumaMarcacion)
     : 0;
 
+  // Cálculo de porcentajeRepaso1 con depuración
+  console.log(`Valores para cálculo de porcentajeRepaso1: EventosRepaso1=${EventosRepaso1}, sumaRepaso1=${sumaRepaso1}`);
+  
+  // Verificamos si todos los eventos tienen valor 1 (o equivalente)
+  const todosCompletosRepaso1 = EventosRepaso1 === sumaRepaso1;
+  console.log(`¿Todos los eventos de Repaso1 están completos? ${todosCompletosRepaso1}`);
+  
+  // Si todos los eventos están completos, asignamos 5 puntos (100% de 5)
+  // Si no hay eventos, asignamos 0
+  // Si hay eventos pero no todos están completos, calculamos el porcentaje de cumplimiento
   const porcentajeRepaso1 = EventosRepaso1 > 0
-    ? (5 / EventosRepaso1) * (EventosRepaso1 - sumaRepaso1)
+    ? todosCompletosRepaso1 
+      ? 5 // 100% de 5 puntos
+      : (5 * sumaRepaso1) / EventosRepaso1 // Porcentaje de cumplimiento sobre 5 puntos
     : 0;
+  console.log(`porcentajeRepaso1 calculado: ${porcentajeRepaso1}`);
 
+  // Cálculo de porcentajeRepaso2 con depuración
+  console.log(`Valores para cálculo de porcentajeRepaso2: EventosRepaso2=${EventosRepaso2}, sumaRepaso2=${sumaRepaso2}`);
+  
+  // Verificamos si todos los eventos tienen valor 1 (o equivalente)
+  const todosCompletosRepaso2 = EventosRepaso2 === sumaRepaso2;
+  console.log(`¿Todos los eventos de Repaso2 están completos? ${todosCompletosRepaso2}`);
+  
+  // Si todos los eventos están completos, asignamos 5 puntos (100% de 5)
+  // Si no hay eventos, asignamos 0
+  // Si hay eventos pero no todos están completos, calculamos el porcentaje de cumplimiento
   const porcentajeRepaso2 = EventosRepaso2 > 0
-    ? (5 / EventosRepaso2) * (EventosRepaso2 - sumaRepaso2)
+    ? todosCompletosRepaso2
+      ? 5 // 100% de 5 puntos
+      : (5 * sumaRepaso2) / EventosRepaso2 // Porcentaje de cumplimiento sobre 5 puntos
     : 0;
+  console.log(`porcentajeRepaso2 calculado: ${porcentajeRepaso2}`);
 
   // Nuevos cálculos de proporcionalidad
   const proporcionalidadAntesis = sumaInflorescencia > 0
