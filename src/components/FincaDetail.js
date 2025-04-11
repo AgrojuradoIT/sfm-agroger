@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { FaAngleRight, FaCalendarAlt, FaUser, FaExclamationTriangle, FaIdCard, FaUserAlt, FaChartBar, FaTimes, FaListAlt } from 'react-icons/fa';
-import { Card, CardContent, Typography, Grid, LinearProgress, Box, Chip, Divider, Button, Modal, IconButton, Tooltip } from '@mui/material';
+import { FaAngleRight, FaCalendarAlt, FaUser, FaExclamationTriangle, FaCalendar, FaClock, FaIdCard, FaUserAlt, FaChartBar, FaTimes, FaListAlt } from 'react-icons/fa';
+import { Card, CardContent, Typography, Grid, LinearProgress, Box, Chip, Divider, Paper, Button, Modal, Tooltip } from '@mui/material';
 import { styles } from '../styles/FincaDetail.styles';
 import {
   FilterPanel,
@@ -13,6 +13,8 @@ import {
   LoadingIndicator,
   PanelsContainer,
   OperatorPhotoContainer,
+  OperatorNameHeader,
+  OperatorTitle,
   PhotoBox,
   PhotoContainer,
   OperatorPhoto,
@@ -50,6 +52,41 @@ const FincaDetail = () => {
   const [usandoDatosEjemplo, setUsandoDatosEjemplo] = useState(false);
   const [mensaje, setMensaje] = useState('');
   const [modalAbierto, setModalAbierto] = useState(false);
+  
+  // Efecto para animar las barras de progreso cuando son visibles
+  useEffect(() => {
+    if (!isLoading && selectedEvaluation) {
+      // Crear un Intersection Observer para detectar cuando las barras son visibles
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach(entry => {
+            // Cuando la barra entra en el viewport, añadir la clase para animar
+            if (entry.isIntersecting) {
+              setTimeout(() => {
+                entry.target.classList.add('animate');
+              }, 200);
+              // Dejar de observar una vez que se ha animado
+              observer.unobserve(entry.target);
+            }
+          });
+        },
+        { threshold: 0.2 } // Activar cuando al menos el 20% de la barra es visible
+      );
+      
+      // Observar todas las barras de progreso
+      const progressBars = document.querySelectorAll('.progress-bar-animated');
+      progressBars.forEach(bar => {
+        observer.observe(bar);
+      });
+      
+      return () => {
+        // Limpiar el observer cuando el componente se desmonte o cambie
+        progressBars.forEach(bar => {
+          observer.unobserve(bar);
+        });
+      };
+    }
+  }, [isLoading, selectedEvaluation]);
 
   // Extraer fetchData fuera del useEffect para poder reutilizarla
   const fetchData = useCallback(async () => {
@@ -434,11 +471,9 @@ const FincaDetail = () => {
               <OperatorPhotoContainer>
                 <Grid container spacing={0}>
                   <Grid item xs={12}>
-
-                    
                     <Grid container spacing={0}>
                       <Grid item xs={12}>
-                        <PhotoBox>
+                        <PhotoBox sx={{ marginTop: '20px' }}>
                       {/* Verificar ambos campos posibles para la foto */}
                       {(selectedEvaluation.fotopach || selectedEvaluation.fotopath) ? (
                         <>
@@ -460,7 +495,10 @@ const FincaDetail = () => {
                               />
                             </OperatorPhoto>
                             <PhotoOverlay>
-                              <OverlayText variant="h4" sx={styles.overlayText}>
+                              <OverlayText 
+                                variant="h4" 
+                                sx={styles.overlayText}
+                              >
                                 {selectedEvaluation.polinizador}
                               </OverlayText>
                             </PhotoOverlay>
@@ -492,48 +530,69 @@ const FincaDetail = () => {
                         </Typography>
                         <Box sx={styles.infoCardContent}>
                           <Grid container spacing={2}>
-                            <Grid item xs={6}>
+                            <Grid item xs={4}>
                               <Tooltip title="Dar click para ver eventos" arrow placement="top">
                                 <Button
                                   variant="contained"
                                   onClick={() => setModalAbierto(true)}
-                                  sx={styles.eventosButton}
+                                  sx={{
+                                    ...styles.eventosButton,
+                                    height: '100%',
+                                    backgroundColor: '#f5f5f5',
+                                    borderRadius: '8px',
+                                    boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+                                    position: 'relative',
+                                    overflow: 'hidden',
+                                    padding: '12px',
+                                    background: 'linear-gradient(135deg, #f9f9f9 0%, #f0f0f0 100%)',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    '&:hover': {
+                                      boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
+                                      transform: 'translateY(-2px)'
+                                    },
+                                    '&::before': {
+                                      content: '""',
+                                      position: 'absolute',
+                                      top: 0,
+                                      left: 0,
+                                      width: '100%',
+                                      height: '6px',
+                                      background: 'linear-gradient(90deg, #4caf50, #81c784)'
+                                    }
+                                  }}
                                 >
-                                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', mb: 1 }}>
-                                    <FaListAlt style={{ fontSize: '18px', color: '#757575', marginRight: '8px' }} />
-                                    <Typography className="evento-texto" variant="subtitle2" color="text.secondary">Eventos</Typography>
-                                  </Box>
-                                  <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', gap: 1 }}>
-                                    <Typography className="evento-valor" variant="h6" sx={{fontWeight: 'bold', color: '#424242', textAlign: 'center'}}>
+                                  <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
+                                    <FaListAlt style={{ fontSize: '24px', color: '#4caf50', marginBottom: '8px' }} />
+                                    <Typography variant="h5" sx={{ fontWeight: 'bold', color: '#2e7d32', marginBottom: '8px', textAlign: 'center' }}>
                                       {selectedEvaluation.evaluacionesPolinizacion?.length || 0}
                                     </Typography>
-                                    <LinearProgress 
-                                      variant="determinate" 
-                                      value={Math.min((selectedEvaluation.evaluacionesPolinizacion?.length || 0) * 10, 100)} 
-                                      sx={styles.progressBar} 
+                                    <Chip 
+                                      label="Eventos"
+                                      color="success"
+                                      sx={{ 
+                                        fontSize: '0.85rem', 
+                                        fontWeight: 'bold', 
+                                        height: 28, 
+                                        background: 'linear-gradient(90deg, #4caf50, #2e7d32)',
+                                        margin: '0 auto'
+                                      }}
                                     />
                                   </Box>
                                 </Button>
                               </Tooltip>
                             </Grid>
-                            <Grid item xs={6}>
-                              <Box>
-                                <Typography variant="subtitle2" color="text.secondary">Polinizador</Typography>
-                                <Typography variant="body1" sx={{ fontWeight: 'medium', wordBreak: 'break-word', overflowWrap: 'break-word', hyphens: 'auto', mb: 2 }}>
-                                  {selectedEvaluation.polinizador}
-                                </Typography>
-                              </Box>
-                              <Box>
-                                <Typography variant="subtitle2" color="text.secondary">Evaluador</Typography>
-                                <Typography variant="body1" sx={{ fontWeight: 'medium' }}>{selectedEvaluation.evaluador}</Typography>
-                              </Box>
-                            </Grid>
-                            <Grid item xs={6}>
+                            <Grid item xs={4} sx={{ display: 'flex', flexDirection: 'column' }}>
                               <Typography variant="subtitle2" color="text.secondary">ID Evaluación</Typography>
                               <Typography variant="body1" sx={{ fontWeight: 'medium' }}>EvalGen-{selectedEvaluation.id}</Typography>
+                              <Typography variant="subtitle2" color="text.secondary">Polinizador</Typography>
+                              <Typography variant="body1" sx={{ fontWeight: 'medium' }}>{selectedEvaluation.polinizador}</Typography>
                             </Grid>
-                            <Grid item xs={6}>
-                              {/* Espacio para mantener la estructura */}
+                            <Grid item xs={4}>
+                              <Typography variant="subtitle2" color="text.secondary">Evaluador</Typography>
+                              <Typography variant="body1" sx={{ fontWeight: 'medium' }}>{selectedEvaluation.evaluador}</Typography>
                             </Grid>
                           </Grid>
                         </Box>
@@ -543,7 +602,7 @@ const FincaDetail = () => {
                   
                   <Grid item xs={12} md={6}>
                     <Card style={{marginTop: '20px', marginLeft: '20px', marginRight: '20px', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 4px 8px rgba(0,0,0,0.1)', width: 'calc(100% - 40px)'}}>
-                      <CardContent style={{padding: '16px', backgroundColor: '#f8f9fa', borderBottom: '1px solid #e0e0e0', display: 'flex', alignItems: 'center'}}>
+                      <CardContent style={{padding: '16px', backgroundColor: '#f8f9fa', borderBottom: '1px solid #eee', display: 'flex', alignItems: 'center'}}>
                         <div style={{marginRight: '8px', color: '#2e7d32'}}>
                           <FaUserAlt />
                         </div>
@@ -591,7 +650,7 @@ const FincaDetail = () => {
               
               {selectedEvaluation.evaluacionesPolinizacion?.length > 0 && (
                 <Card style={{marginTop: '20px', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 4px 8px rgba(0,0,0,0.1)'}}>
-                <CardContent style={{padding: '16px', backgroundColor: '#f8f9fa', borderBottom: '1px solid #e0e0e0', display: 'flex', alignItems: 'center'}}>
+                <CardContent style={{padding: '16px', backgroundColor: '#f8f9fa', borderBottom: '1px solid #eee', display: 'flex', alignItems: 'center'}}>
                   <div style={{marginRight: '8px', color: '#2e7d32'}}>
                     <FaChartBar />
                   </div>
@@ -675,6 +734,7 @@ const FincaDetail = () => {
                               {/* Proporcionalidad Antesis */}
                               <Grid item xs={12} sm={4} md={4} lg={3}>
                                 <Box 
+                                  className="progress-box-animated"
                                   sx={{
                                     backgroundColor: '#f5f5f5',
                                     padding: 2,
@@ -688,7 +748,12 @@ const FincaDetail = () => {
                                     display: 'flex',
                                     flexDirection: 'column',
                                     alignItems: 'center',
-                                    justifyContent: 'center'
+                                    justifyContent: 'center',
+                                    transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+                                    '&:hover': {
+                                      transform: 'translateY(-5px)',
+                                      boxShadow: '0 6px 12px rgba(0,0,0,0.12)'
+                                    }
                                   }}
                                 >
                                   <div style={{
@@ -696,10 +761,38 @@ const FincaDetail = () => {
                                     top: 0,
                                     left: 0,
                                     width: '100%',
-                                    height: '6px',
-                                    background: 'linear-gradient(90deg, #4caf50, #81c784)'
+                                    height: '8px',
+                                    background: 'linear-gradient(90deg, #4caf50, #81c784)',
+                                    boxShadow: '0 0 10px rgba(76, 175, 80, 0.5)'
                                   }}></div>
-                                  <Typography variant="h3" style={{color: '#4caf50', fontWeight: 'bold', marginBottom: '8px', marginTop: '8px', textAlign: 'center'}}>
+                                  <Typography 
+                                    variant="h3" 
+                                    className="percentage-animated"
+                                    sx={{
+                                      color: '#4caf50', 
+                                      fontWeight: 'bold', 
+                                      marginBottom: '10px',
+                                      position: 'relative',
+                                      overflow: 'hidden',
+                                      display: 'inline-block',
+                                      '&::after': {
+                                        content: '""',
+                                        position: 'absolute',
+                                        top: 0,
+                                        left: 0,
+                                        width: '100%',
+                                        height: '100%',
+                                        background: 'linear-gradient(90deg, transparent, #ffffff80, transparent)',
+                                        animation: 'shimmer 3s infinite',
+                                        transform: 'translateX(-100%)'
+                                      },
+                                      '@keyframes shimmer': {
+                                        '100%': {
+                                          transform: 'translateX(100%)'
+                                        }
+                                      }
+                                    }}
+                                  >
                                     {metricas.proporcionalidadAntesis.toFixed(2)}%
                                   </Typography>
                                   <Chip 
@@ -710,7 +803,12 @@ const FincaDetail = () => {
                                       height: 28, 
                                       background: 'linear-gradient(90deg, #4caf50, #2e7d32)',
                                       color: 'white',
-                                      margin: '0 auto'
+                                      margin: '0 auto',
+                                      transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+                                      '&:hover': {
+                                        transform: 'scale(1.05)',
+                                        boxShadow: '0 2px 5px rgba(0,0,0,0.2)'
+                                      }
                                     }}
                                   />
                                 </Box>
@@ -719,6 +817,7 @@ const FincaDetail = () => {
                               {/* Proporcionalidad Post-Antesis */}
                               <Grid item xs={12} sm={4} md={4} lg={3}>
                                 <Box 
+                                  className="progress-box-animated"
                                   sx={{
                                     backgroundColor: '#f5f5f5',
                                     padding: 2,
@@ -732,7 +831,12 @@ const FincaDetail = () => {
                                     display: 'flex',
                                     flexDirection: 'column',
                                     alignItems: 'center',
-                                    justifyContent: 'center'
+                                    justifyContent: 'center',
+                                    transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+                                    '&:hover': {
+                                      transform: 'translateY(-5px)',
+                                      boxShadow: '0 6px 12px rgba(0,0,0,0.12)'
+                                    }
                                   }}
                                 >
                                   <div style={{
@@ -740,10 +844,35 @@ const FincaDetail = () => {
                                     top: 0,
                                     left: 0,
                                     width: '100%',
-                                    height: '6px',
-                                    background: 'linear-gradient(90deg, #2196f3, #64b5f6)'
+                                    height: '8px',
+                                    background: 'linear-gradient(90deg, #2196f3, #64b5f6)',
+                                    boxShadow: '0 0 10px rgba(33, 150, 243, 0.5)'
                                   }}></div>
-                                  <Typography variant="h3" style={{fontWeight: 'bold', color: '#2196f3', marginBottom: '8px', marginTop: '8px', textAlign: 'center'}}>
+                                  <Typography 
+                                    variant="h3" 
+                                    className="percentage-animated"
+                                    sx={{
+                                      color: '#2196f3', 
+                                      fontWeight: 'bold', 
+                                      marginBottom: '8px',
+                                      marginTop: '8px',
+                                      textAlign: 'center',
+                                      position: 'relative',
+                                      overflow: 'hidden',
+                                      display: 'inline-block',
+                                      '&::after': {
+                                        content: '""',
+                                        position: 'absolute',
+                                        top: 0,
+                                        left: 0,
+                                        width: '100%',
+                                        height: '100%',
+                                        background: 'linear-gradient(90deg, transparent, #ffffff80, transparent)',
+                                        animation: 'shimmer 3s infinite',
+                                        transform: 'translateX(-100%)'
+                                      }
+                                    }}
+                                  >
                                     {metricas.proporcionalidadPostAntesis.toFixed(2)}%
                                   </Typography>
                                   <Chip 
@@ -754,7 +883,12 @@ const FincaDetail = () => {
                                       height: 28, 
                                       background: 'linear-gradient(90deg, #2196f3, #1565c0)',
                                       color: 'white',
-                                      margin: '0 auto'
+                                      margin: '0 auto',
+                                      transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+                                      '&:hover': {
+                                        transform: 'scale(1.05)',
+                                        boxShadow: '0 2px 5px rgba(0,0,0,0.2)'
+                                      }
                                     }}
                                   />
                                 </Box>
@@ -786,7 +920,12 @@ const FincaDetail = () => {
                                       border: '1px solid #f0f0f0',
                                       display: 'flex',
                                       flexDirection: 'column',
-                                      height: '100%'
+                                      height: '100%',
+                                      transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+                                      '&:hover': {
+                                        transform: 'translateY(-5px)',
+                                        boxShadow: '0 6px 12px rgba(0,0,0,0.12)'
+                                      }
                                     }}>
                                       <Box sx={{display: 'flex', flexDirection: 'column', marginBottom: 2}}>
                                         <Box sx={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 2}}>
@@ -797,13 +936,28 @@ const FincaDetail = () => {
                                               height: '12px',
                                               backgroundColor: item.color,
                                               borderRadius: '50%',
-                                              marginRight: '8px'
+                                              marginRight: '8px',
+                                              boxShadow: `0 0 0 3px ${item.color}20`,
+                                              transition: 'transform 0.3s ease',
+                                              animation: 'pulse 3s infinite'
                                             }}></span>
                                             <Typography variant="body1" sx={{color: '#424242', fontWeight: '500'}}>
                                               {item.label}
                                             </Typography>
                                           </Box>
-                                          <Typography variant="body1" sx={{fontWeight: 'bold', marginLeft: '16px'}}>
+                                          <Typography 
+                                            variant="body1" 
+                                            sx={{
+                                              fontWeight: 'bold', 
+                                              marginLeft: '16px',
+                                              color: item.color,
+                                              transition: 'transform 0.3s ease, color 0.3s ease',
+                                              '&:hover': {
+                                                transform: 'scale(1.1)',
+                                                color: `${item.color}dd`
+                                              }
+                                            }}
+                                          >
                                             {value.toFixed(2)} %
                                           </Typography>
                                         </Box>
@@ -811,12 +965,37 @@ const FincaDetail = () => {
                                       <LinearProgress 
                                         variant="determinate" 
                                         value={Math.min((value / item.maxValue) * 100, 100)} 
+                                        className="progress-bar-animated"
                                         sx={{
-                                          height: 6, 
-                                          borderRadius: 3,
+                                          height: 8, 
+                                          borderRadius: 4,
                                           backgroundColor: '#f0f0f0',
                                           '& .MuiLinearProgress-bar': {
-                                            backgroundColor: item.color
+                                            backgroundColor: item.color,
+                                            backgroundImage: `linear-gradient(90deg, ${item.color}aa, ${item.color})`,
+                                            animation: 'slideIn 4s ease-out',
+                                            boxShadow: `0 0 10px ${item.color}80`
+                                          },
+                                          '@keyframes slideIn': {
+                                            '0%': {
+                                              width: '0%',
+                                              opacity: 0.7
+                                            },
+                                            '100%': {
+                                              width: `${Math.min((value / item.maxValue) * 100, 100)}%`,
+                                              opacity: 1
+                                            }
+                                          },
+                                          '@keyframes pulse': {
+                                            '0%': {
+                                              boxShadow: `0 0 0 0 ${item.color}70`
+                                            },
+                                            '70%': {
+                                              boxShadow: `0 0 0 6px ${item.color}00`
+                                            },
+                                            '100%': {
+                                              boxShadow: `0 0 0 0 ${item.color}00`
+                                            }
                                           }
                                         }}
                                       />
@@ -844,7 +1023,12 @@ const FincaDetail = () => {
                                         border: '1px solid #f0f0f0',
                                         display: 'flex',
                                         flexDirection: 'column',
-                                        height: '100%'
+                                        height: '100%',
+                                        transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+                                        '&:hover': {
+                                          transform: 'translateY(-5px)',
+                                          boxShadow: '0 6px 12px rgba(0,0,0,0.12)'
+                                        }
                                       }}>
                                         <Box sx={{display: 'flex', flexDirection: 'column', marginBottom: 2}}>
                                           <Box sx={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 2}}>
@@ -855,13 +1039,28 @@ const FincaDetail = () => {
                                                 height: '12px',
                                                 backgroundColor: item.color,
                                                 borderRadius: '50%',
-                                                marginRight: '8px'
+                                                marginRight: '8px',
+                                                boxShadow: `0 0 0 3px ${item.color}20`,
+                                                transition: 'transform 0.3s ease',
+                                                animation: 'pulse 3s infinite'
                                               }}></span>
                                               <Typography variant="body1" sx={{color: '#424242', fontWeight: '500'}}>
                                                 {item.label}
                                               </Typography>
                                             </Box>
-                                            <Typography variant="body1" sx={{fontWeight: 'bold', marginLeft: '16px'}}>
+                                            <Typography 
+                                              variant="body1" 
+                                              sx={{
+                                                fontWeight: 'bold', 
+                                                marginLeft: '16px',
+                                                color: item.color,
+                                                transition: 'transform 0.3s ease, color 0.3s ease',
+                                                '&:hover': {
+                                                  transform: 'scale(1.1)',
+                                                  color: `${item.color}dd`
+                                                }
+                                              }}
+                                            >
                                               {value.toFixed(2)} %
                                             </Typography>
                                           </Box>
@@ -869,12 +1068,21 @@ const FincaDetail = () => {
                                         <LinearProgress 
                                           variant="determinate" 
                                           value={Math.min((value / item.maxValue) * 100, 100)} 
+                                          className="progress-bar-animated"
                                           sx={{
-                                            height: 6, 
-                                            borderRadius: 3,
+                                            height: 8, 
+                                            borderRadius: 4,
                                             backgroundColor: '#f0f0f0',
                                             '& .MuiLinearProgress-bar': {
-                                              backgroundColor: item.color
+                                              backgroundColor: item.color,
+                                              backgroundImage: `linear-gradient(90deg, ${item.color}aa, ${item.color})`,
+                                              animation: 'none',
+                                              width: '0%',
+                                              boxShadow: `0 0 10px ${item.color}80`,
+                                              transition: 'width 2.5s ease-out'
+                                            },
+                                            '&.animate .MuiLinearProgress-bar': {
+                                              width: `${Math.min((value / item.maxValue) * 100, 100)}%`
                                             }
                                           }}
                                         />
@@ -902,7 +1110,12 @@ const FincaDetail = () => {
                                         border: '1px solid #f0f0f0',
                                         display: 'flex',
                                         flexDirection: 'column',
-                                        height: '100%'
+                                        height: '100%',
+                                        transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+                                        '&:hover': {
+                                          transform: 'translateY(-5px)',
+                                          boxShadow: '0 6px 12px rgba(0,0,0,0.12)'
+                                        }
                                       }}>
                                         <Box sx={{display: 'flex', flexDirection: 'column', marginBottom: 2}}>
                                           <Box sx={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 2}}>
@@ -913,13 +1126,28 @@ const FincaDetail = () => {
                                                 height: '12px',
                                                 backgroundColor: item.color,
                                                 borderRadius: '50%',
-                                                marginRight: '8px'
+                                                marginRight: '8px',
+                                                boxShadow: `0 0 0 3px ${item.color}20`,
+                                                transition: 'transform 0.3s ease',
+                                                animation: 'pulse 3s infinite'
                                               }}></span>
                                               <Typography variant="body1" sx={{color: '#424242', fontWeight: '500'}}>
                                                 {item.label}
                                               </Typography>
                                             </Box>
-                                            <Typography variant="body1" sx={{fontWeight: 'bold', marginLeft: '16px'}}>
+                                            <Typography 
+                                              variant="body1" 
+                                              sx={{
+                                                fontWeight: 'bold', 
+                                                marginLeft: '16px',
+                                                color: item.color,
+                                                transition: 'transform 0.3s ease, color 0.3s ease',
+                                                '&:hover': {
+                                                  transform: 'scale(1.1)',
+                                                  color: `${item.color}dd`
+                                                }
+                                              }}
+                                            >
                                               {value.toFixed(2)} %
                                             </Typography>
                                           </Box>
@@ -927,12 +1155,21 @@ const FincaDetail = () => {
                                         <LinearProgress 
                                           variant="determinate" 
                                           value={Math.min((value / item.maxValue) * 100, 100)} 
+                                          className="progress-bar-animated"
                                           sx={{
-                                            height: 6, 
-                                            borderRadius: 3,
+                                            height: 8, 
+                                            borderRadius: 4,
                                             backgroundColor: '#f0f0f0',
                                             '& .MuiLinearProgress-bar': {
-                                              backgroundColor: item.color
+                                              backgroundColor: item.color,
+                                              backgroundImage: `linear-gradient(90deg, ${item.color}aa, ${item.color})`,
+                                              animation: 'none',
+                                              width: '0%',
+                                              boxShadow: `0 0 10px ${item.color}80`,
+                                              transition: 'width 2.5s ease-out'
+                                            },
+                                            '&.animate .MuiLinearProgress-bar': {
+                                              width: `${Math.min((value / item.maxValue) * 100, 100)}%`
                                             }
                                           }}
                                         />
@@ -1033,71 +1270,110 @@ const FincaDetail = () => {
         aria-labelledby="modal-eventos-titulo"
         aria-describedby="modal-eventos-descripcion"
       >
-        <Box sx={styles.modalContent}>
-          <IconButton 
-            aria-label="cerrar" 
-            onClick={() => setModalAbierto(false)}
-            sx={styles.closeButton}
-          >
-            <FaTimes />
-          </IconButton>
+        <Box sx={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: '90%',
+          height: '80%',
+          bgcolor: 'background.paper',
+          border: '1px solid #ddd',
+          boxShadow: 24,
+          p: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden'
+        }}>
+          <Box sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            padding: '12px 16px',
+            borderBottom: '1px solid #eee'
+          }}>
+            <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#444' }}>
+              Eventos de Evaluación
+            </Typography>
+            <Button
+              onClick={() => setModalAbierto(false)}
+              variant="text"
+              size="small"
+              sx={{
+                minWidth: '40px',
+                width: '40px',
+                height: '40px',
+                borderRadius: '50%',
+                color: '#777',
+                padding: 0,
+                '&:hover': {
+                  color: '#f44336',
+                  backgroundColor: 'rgba(0,0,0,0.03)'
+                }
+              }}
+            >
+              <FaTimes style={{ fontSize: '18px' }} />
+            </Button>
+          </Box>
           
-          <Box sx={styles.tableContainer}>
-            <table style={styles.table}>
-              <thead>
-                <tr>
-                  <th style={styles.tableHeaderCell}>Fecha</th>
-                  <th style={styles.tableHeaderCell}>Hora</th>
-                  <th style={styles.tableHeaderCell}>Semana</th>
-                  <th style={styles.tableHeaderCellLeft}>Ubicación</th>
-                  <th style={styles.tableHeaderCell}>Lote</th>
-                  <th style={styles.tableHeaderCell}>Sección</th>
-                  <th style={styles.tableHeaderCell}>Palma</th>
-                  <th style={styles.tableHeaderCell}>Inflorescencia</th>
-                  <th style={styles.tableHeaderCell}>Antesis</th>
-                  <th style={styles.tableHeaderCell}>Antesis Dejadas</th>
-                  <th style={styles.tableHeaderCell}>Post Antesis</th>
-                  <th style={styles.tableHeaderCell}>Post Antesis Dejadas</th>
-                  <th style={styles.tableHeaderCell}>Espate</th>
-                  <th style={styles.tableHeaderCell}>Aplicación</th>
-                  <th style={styles.tableHeaderCell}>Marcación</th>
-                  <th style={styles.tableHeaderCell}>Repaso 1</th>
-                  <th style={styles.tableHeaderCell}>Repaso 2</th>
-                  <th style={styles.tableHeaderCell}>Observaciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                {selectedEvaluation && selectedEvaluation.evaluacionesPolinizacion && selectedEvaluation.evaluacionesPolinizacion.map((evaluacion, index) => (
-                  <tr key={index} style={index % 2 === 0 ? styles.tableRowEven : styles.tableRowOdd}>
-                    <td style={styles.tableDataCell}>{selectedEvaluation.fecha}</td>
-                    <td style={styles.tableDataCell}>{selectedEvaluation.hora}</td>
-                    <td style={styles.tableDataCell}>{selectedEvaluation.semana}</td>
-                    <td style={styles.tableDataCellLeft}>{evaluacion.ubicacion || '-'}</td>
-                    <td style={styles.tableDataCell}>{evaluacion.lote || selectedEvaluation.lote || '-'}</td>
-                    <td style={styles.tableDataCell}>{evaluacion.seccion || '-'}</td>
-                    <td style={styles.tableDataCell}>{evaluacion.palma || '-'}</td>
-                    <td style={styles.tableDataCell}>{evaluacion.inflorescencia || '0'}</td>
-                    <td style={styles.tableDataCell}>{evaluacion.antesis || '0'}</td>
-                    <td style={styles.tableDataCell}>{evaluacion.antesisDejadas || '0'}</td>
-                    <td style={styles.tableDataCell}>{evaluacion.postantesis || '0'}</td>
-                    <td style={styles.tableDataCell}>{evaluacion.postantesisDejadas || '0'}</td>
-                    <td style={styles.tableDataCell}>{evaluacion.espate || '0'}</td>
-                    <td style={styles.tableDataCell}>{evaluacion.aplicacion || '0'}</td>
-                    <td style={styles.tableDataCell}>{evaluacion.marcacion || '0'}</td>
-                    <td style={styles.tableDataCell}>{evaluacion.repaso1 || '0'}</td>
-                    <td style={styles.tableDataCell}>{evaluacion.repaso2 || '0'}</td>
-                    <td style={styles.tableDataCell}>{evaluacion.observaciones || '-'}</td>
+          <Box sx={{ flex: 1, overflow: 'auto', padding: '0 8px' }}>
+            <Box sx={{ minWidth: '100%' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '8px', border: '1px solid #ddd' }}>
+                <thead>
+                  <tr style={{ backgroundColor: '#f5f5f5', position: 'sticky', top: 0 }}>
+                    <th style={{ padding: '6px', textAlign: 'center', borderBottom: '1px solid #ddd', borderRight: '1px solid #ddd', fontWeight: 'bold', fontSize: '0.8rem', whiteSpace: 'nowrap', position: 'sticky', top: 0, backgroundColor: '#f5f5f5', zIndex: 1 }}>Fecha</th>
+                    <th style={{ padding: '6px', textAlign: 'center', borderBottom: '1px solid #ddd', borderRight: '1px solid #ddd', fontWeight: 'bold', fontSize: '0.8rem', whiteSpace: 'nowrap', position: 'sticky', top: 0, backgroundColor: '#f5f5f5', zIndex: 1 }}>Hora</th>
+                    <th style={{ padding: '6px', textAlign: 'center', borderBottom: '1px solid #ddd', borderRight: '1px solid #ddd', fontWeight: 'bold', fontSize: '0.8rem', whiteSpace: 'nowrap', position: 'sticky', top: 0, backgroundColor: '#f5f5f5', zIndex: 1 }}>Semana</th>
+                    <th style={{ padding: '6px', textAlign: 'center', borderBottom: '1px solid #ddd', borderRight: '1px solid #ddd', fontWeight: 'bold', fontSize: '0.8rem', whiteSpace: 'nowrap', position: 'sticky', top: 0, backgroundColor: '#f5f5f5', zIndex: 1 }}>Ubicación</th>
+                    <th style={{ padding: '6px', textAlign: 'center', borderBottom: '1px solid #ddd', borderRight: '1px solid #ddd', fontWeight: 'bold', fontSize: '0.8rem', whiteSpace: 'nowrap', position: 'sticky', top: 0, backgroundColor: '#f5f5f5', zIndex: 1, minWidth: '120px' }}>Lote</th>
+                    <th style={{ padding: '6px', textAlign: 'center', borderBottom: '1px solid #ddd', borderRight: '1px solid #ddd', fontWeight: 'bold', fontSize: '0.8rem', whiteSpace: 'nowrap', position: 'sticky', top: 0, backgroundColor: '#f5f5f5', zIndex: 1 }}>Sección</th>
+                    <th style={{ padding: '6px', textAlign: 'center', borderBottom: '1px solid #ddd', borderRight: '1px solid #ddd', fontWeight: 'bold', fontSize: '0.8rem', whiteSpace: 'nowrap', position: 'sticky', top: 0, backgroundColor: '#f5f5f5', zIndex: 1 }}>Palma</th>
+                    <th style={{ padding: '6px', textAlign: 'center', borderBottom: '1px solid #ddd', borderRight: '1px solid #ddd', fontWeight: 'bold', fontSize: '0.8rem', whiteSpace: 'nowrap', position: 'sticky', top: 0, backgroundColor: '#f5f5f5', zIndex: 1 }}>Inflorescencia</th>
+                    <th style={{ padding: '6px', textAlign: 'center', borderBottom: '1px solid #ddd', borderRight: '1px solid #ddd', fontWeight: 'bold', fontSize: '0.8rem', whiteSpace: 'nowrap', position: 'sticky', top: 0, backgroundColor: '#f5f5f5', zIndex: 1 }}>Antesis</th>
+                    <th style={{ padding: '6px', textAlign: 'center', borderBottom: '1px solid #ddd', borderRight: '1px solid #ddd', fontWeight: 'bold', fontSize: '0.8rem', whiteSpace: 'nowrap', position: 'sticky', top: 0, backgroundColor: '#f5f5f5', zIndex: 1 }}>Antesis Dejadas</th>
+                    <th style={{ padding: '6px', textAlign: 'center', borderBottom: '1px solid #ddd', borderRight: '1px solid #ddd', fontWeight: 'bold', fontSize: '0.8rem', whiteSpace: 'nowrap', position: 'sticky', top: 0, backgroundColor: '#f5f5f5', zIndex: 1 }}>Post Antesis</th>
+                    <th style={{ padding: '6px', textAlign: 'center', borderBottom: '1px solid #ddd', borderRight: '1px solid #ddd', fontWeight: 'bold', fontSize: '0.8rem', whiteSpace: 'nowrap', position: 'sticky', top: 0, backgroundColor: '#f5f5f5', zIndex: 1 }}>Post Antesis Dejadas</th>
+                    <th style={{ padding: '6px', textAlign: 'center', borderBottom: '1px solid #ddd', borderRight: '1px solid #ddd', fontWeight: 'bold', fontSize: '0.8rem', whiteSpace: 'nowrap', position: 'sticky', top: 0, backgroundColor: '#f5f5f5', zIndex: 1 }}>Espate</th>
+                    <th style={{ padding: '6px', textAlign: 'center', borderBottom: '1px solid #ddd', borderRight: '1px solid #ddd', fontWeight: 'bold', fontSize: '0.8rem', whiteSpace: 'nowrap', position: 'sticky', top: 0, backgroundColor: '#f5f5f5', zIndex: 1 }}>Aplicación</th>
+                    <th style={{ padding: '6px', textAlign: 'center', borderBottom: '1px solid #ddd', borderRight: '1px solid #ddd', fontWeight: 'bold', fontSize: '0.8rem', whiteSpace: 'nowrap', position: 'sticky', top: 0, backgroundColor: '#f5f5f5', zIndex: 1 }}>Marcación</th>
+                    <th style={{ padding: '6px', textAlign: 'center', borderBottom: '1px solid #ddd', borderRight: '1px solid #ddd', fontWeight: 'bold', fontSize: '0.8rem', whiteSpace: 'nowrap', position: 'sticky', top: 0, backgroundColor: '#f5f5f5', zIndex: 1 }}>Repaso 1</th>
+                    <th style={{ padding: '6px', textAlign: 'center', borderBottom: '1px solid #ddd', borderRight: '1px solid #ddd', fontWeight: 'bold', fontSize: '0.8rem', whiteSpace: 'nowrap', position: 'sticky', top: 0, backgroundColor: '#f5f5f5', zIndex: 1 }}>Repaso 2</th>
+                    <th style={{ padding: '6px', textAlign: 'center', borderBottom: '1px solid #ddd', fontWeight: 'bold', fontSize: '0.8rem', whiteSpace: 'nowrap', position: 'sticky', top: 0, backgroundColor: '#f5f5f5', zIndex: 1 }}>Observaciones</th>
                   </tr>
-                ))}
-                {(!selectedEvaluation || !selectedEvaluation.evaluacionesPolinizacion || selectedEvaluation.evaluacionesPolinizacion.length === 0) && (
-                  <tr>
-                    <td colSpan="18" style={styles.noDataMessage}>
-                      No hay datos de evaluación disponibles
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {selectedEvaluation && selectedEvaluation.evaluacionesPolinizacion && selectedEvaluation.evaluacionesPolinizacion.map((evaluacion, index) => (
+                    <tr key={index} style={{ backgroundColor: index % 2 === 0 ? 'white' : '#f8f8f8' }}>
+                      <td style={{ padding: '6px', textAlign: 'center', borderBottom: '1px solid #eee', borderRight: '1px solid #eee', fontSize: '0.8rem' }}>{selectedEvaluation.fecha}</td>
+                      <td style={{ padding: '6px', textAlign: 'center', borderBottom: '1px solid #eee', borderRight: '1px solid #eee', fontSize: '0.8rem' }}>{selectedEvaluation.hora}</td>
+                      <td style={{ padding: '6px', textAlign: 'center', borderBottom: '1px solid #eee', borderRight: '1px solid #eee', fontSize: '0.8rem' }}>{selectedEvaluation.semana}</td>
+                      <td style={{ padding: '6px', textAlign: 'center', borderBottom: '1px solid #eee', borderRight: '1px solid #eee', fontSize: '0.8rem' }}>{evaluacion.ubicacion || '-'}</td>
+                      <td style={{ padding: '6px', textAlign: 'center', borderBottom: '1px solid #eee', borderRight: '1px solid #eee', fontSize: '0.8rem', minWidth: '120px' }}>{evaluacion.lote || selectedEvaluation.lote || '-'}</td>
+                      <td style={{ padding: '6px', textAlign: 'center', borderBottom: '1px solid #eee', borderRight: '1px solid #eee', fontSize: '0.8rem' }}>{evaluacion.seccion || '-'}</td>
+                      <td style={{ padding: '6px', textAlign: 'center', borderBottom: '1px solid #eee', borderRight: '1px solid #eee', fontSize: '0.8rem' }}>{evaluacion.palma || '-'}</td>
+                      <td style={{ padding: '6px', textAlign: 'center', borderBottom: '1px solid #eee', borderRight: '1px solid #eee', fontSize: '0.8rem', color: evaluacion.inflorescencia > 0 ? '#2e7d32' : 'inherit' }}>{evaluacion.inflorescencia || '0'}</td>
+                      <td style={{ padding: '6px', textAlign: 'center', borderBottom: '1px solid #eee', borderRight: '1px solid #eee', fontSize: '0.8rem', color: evaluacion.antesis > 0 ? '#2e7d32' : 'inherit' }}>{evaluacion.antesis || '0'}</td>
+                      <td style={{ padding: '6px', textAlign: 'center', borderBottom: '1px solid #eee', borderRight: '1px solid #eee', fontSize: '0.8rem', color: evaluacion.antesisDejadas > 0 ? '#2e7d32' : 'inherit' }}>{evaluacion.antesisDejadas || '0'}</td>
+                      <td style={{ padding: '6px', textAlign: 'center', borderBottom: '1px solid #eee', borderRight: '1px solid #eee', fontSize: '0.8rem', color: evaluacion.postantesis > 0 ? '#2e7d32' : 'inherit' }}>{evaluacion.postantesis || '0'}</td>
+                      <td style={{ padding: '6px', textAlign: 'center', borderBottom: '1px solid #eee', borderRight: '1px solid #eee', fontSize: '0.8rem', color: evaluacion.postantesisDejadas > 0 ? '#2e7d32' : 'inherit' }}>{evaluacion.postantesisDejadas || '0'}</td>
+                      <td style={{ padding: '6px', textAlign: 'center', borderBottom: '1px solid #eee', borderRight: '1px solid #eee', fontSize: '0.8rem', color: evaluacion.espate > 0 ? '#2e7d32' : 'inherit' }}>{evaluacion.espate || '0'}</td>
+                      <td style={{ padding: '6px', textAlign: 'center', borderBottom: '1px solid #eee', borderRight: '1px solid #eee', fontSize: '0.8rem', color: evaluacion.aplicacion > 0 ? '#2e7d32' : 'inherit' }}>{evaluacion.aplicacion || '0'}</td>
+                      <td style={{ padding: '6px', textAlign: 'center', borderBottom: '1px solid #eee', borderRight: '1px solid #eee', fontSize: '0.8rem', color: evaluacion.marcacion > 0 ? '#2e7d32' : 'inherit' }}>{evaluacion.marcacion || '0'}</td>
+                      <td style={{ padding: '6px', textAlign: 'center', borderBottom: '1px solid #eee', borderRight: '1px solid #eee', fontSize: '0.8rem', color: evaluacion.repaso1 > 0 ? '#2e7d32' : 'inherit' }}>{evaluacion.repaso1 || '0'}</td>
+                      <td style={{ padding: '6px', textAlign: 'center', borderBottom: '1px solid #eee', borderRight: '1px solid #eee', fontSize: '0.8rem', color: evaluacion.repaso2 > 0 ? '#2e7d32' : 'inherit' }}>{evaluacion.repaso2 || '0'}</td>
+                      <td style={{ padding: '6px', textAlign: 'left', borderBottom: '1px solid #eee', fontSize: '0.8rem' }}>{evaluacion.observaciones || '-'}</td>
+                    </tr>
+                  ))}
+                  {(!selectedEvaluation || !selectedEvaluation.evaluacionesPolinizacion || selectedEvaluation.evaluacionesPolinizacion.length === 0) && (
+                    <tr>
+                      <td colSpan="18" style={{ padding: '20px', textAlign: 'center', color: '#999', fontSize: '0.9rem', border: '1px solid #eee' }}>
+                        No hay datos disponibles
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </Box>
           </Box>
         </Box>
       </Modal>

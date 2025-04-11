@@ -25,14 +25,17 @@ export const styles = {
   },
   
   overlayText: {
-    color: '#ffffff',
+    color: 'white',
     fontWeight: 'bold',
     fontSize: '1.8rem',
-    textShadow: '2px 2px 4px rgba(0,0,0,0.9)',
+    textShadow: '2px 2px 4px rgba(0,0,0,0.9), 0px 0px 10px rgba(0,0,0,0.8), 0px 0px 15px rgba(0,0,0,0.7)',
     margin: 0,
     textAlign: 'center',
     width: '100%',
-    letterSpacing: '0.5px'
+    letterSpacing: '0.5px',
+    textTransform: 'uppercase',
+    WebkitTextStroke: '1.5px rgba(0,0,0,0.5)',
+    padding: '8px 16px'
   },
   
   // Estilos para el botón de eventos
