@@ -1,6 +1,232 @@
 import styled from 'styled-components';
 import { Box, Paper, Typography } from '@mui/material';
 
+// Estilos de Material UI para el componente FincaDetail
+export const styles = {
+  // Estilos para la tarjeta de información general
+  infoCard: {
+    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+    height: '100%'
+  },
+  
+  // Estilos para el overlay de la foto
+  photoOverlay: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    background: 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.5) 50%, rgba(0,0,0,0) 100%)',
+    padding: '20px 10px 10px',
+    display: 'flex',
+    alignItems: 'flex-end',  /* Alinea el contenido en la parte inferior */
+    justifyContent: 'center',
+    paddingBottom: '15px',
+    borderRadius: '0 0 8px 8px'
+  },
+  
+  overlayText: {
+    color: '#ffffff',
+    fontWeight: 'bold',
+    fontSize: '1.8rem',
+    textShadow: '2px 2px 4px rgba(0,0,0,0.9)',
+    margin: 0,
+    textAlign: 'center',
+    width: '100%',
+    letterSpacing: '0.5px'
+  },
+  
+  // Estilos para el botón de eventos
+  eventosButton: {
+    width: '100%',
+    backgroundColor: '#f8f9fa',
+    color: '#424242',
+    boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+    padding: '16px',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: '8px',
+    transition: 'all 0.2s',
+    '&:hover': {
+      backgroundColor: '#f1f3f4',
+      boxShadow: '0 2px 4px rgba(0,0,0,0.15)',
+      transform: 'translateY(-2px)'
+    }
+  },
+  
+  eventosIcon: {
+    fontSize: '20px',
+    color: '#4caf50',
+    marginRight: '8px'
+  },
+  
+  // Estilos para la barra de progreso
+  progressBar: {
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#f0f0f0',
+    width: '80%',
+    marginTop: '4px',
+    '& .MuiLinearProgress-bar': {
+      backgroundColor: '#4caf50'
+    }
+  },
+  
+  // Estilos para el modal
+  modal: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  
+  modalContent: {
+    backgroundColor: 'white',
+    borderRadius: '8px',
+    boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+    padding: '24px',
+    width: '90vw',
+    maxWidth: '1200px',
+    maxHeight: '90vh',
+    overflow: 'auto',
+    position: 'relative',
+    margin: '0 auto',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center'
+  },
+  
+  modalHeader: {
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: '16px',
+    borderBottom: '1px solid #eee',
+    paddingBottom: '16px',
+    position: 'relative'
+  },
+  
+  modalTitle: {
+    fontSize: '1.25rem',
+    fontWeight: 'bold',
+    color: '#424242',
+    textAlign: 'center',
+    width: '100%'
+  },
+  
+  closeButton: {
+    color: '#757575',
+    position: 'absolute',
+    right: 10,
+    top: 10,
+    zIndex: 10,
+    '&:hover': {
+      color: '#424242',
+      backgroundColor: '#f5f5f5'
+    }
+  },
+  
+  // Estilos para la tabla
+  tableContainer: {
+    maxHeight: '70vh',
+    overflow: 'auto',
+    overflowX: 'auto',
+    marginTop: '16px',
+    border: '1px solid #e0e0e0',
+    borderRadius: '8px',
+    width: '100%',
+    boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
+    backgroundColor: 'white'
+  },
+  
+  table: {
+    minWidth: '1000px',
+    borderCollapse: 'separate',
+    borderSpacing: 0,
+    backgroundColor: 'white',
+    margin: '0 auto',
+    width: '100%'
+  },
+  
+  tableHeaderCell: {
+    backgroundColor: '#f8f9fa',
+    fontWeight: '600',
+    padding: '14px 16px',
+    borderBottom: '2px solid #4caf50',
+    textAlign: 'center',
+    position: 'sticky',
+    top: 0,
+    zIndex: 1,
+    color: '#2c3e50',
+    fontSize: '0.95rem',
+    minWidth: '100px',
+    letterSpacing: '0.3px',
+    transition: 'background-color 0.2s',
+    '&:hover': {
+      backgroundColor: '#eef2f7'
+    }
+  },
+  
+  tableHeaderCellLeft: {
+    backgroundColor: '#f8f9fa',
+    fontWeight: '600',
+    padding: '14px 16px',
+    borderBottom: '2px solid #4caf50',
+    textAlign: 'left',
+    position: 'sticky',
+    top: 0,
+    zIndex: 1,
+    color: '#2c3e50',
+    fontSize: '0.95rem',
+    minWidth: '100px',
+    letterSpacing: '0.3px',
+    transition: 'background-color 0.2s',
+    '&:hover': {
+      backgroundColor: '#eef2f7'
+    }
+  },
+  
+  tableDataCell: {
+    padding: '12px 16px',
+    borderBottom: '1px solid #e9ecef',
+    textAlign: 'center',
+    fontSize: '0.9rem',
+    minWidth: '100px',
+    color: '#495057',
+    transition: 'background-color 0.2s'
+  },
+  
+  tableDataCellLeft: {
+    padding: '12px 16px',
+    borderBottom: '1px solid #e9ecef',
+    textAlign: 'left',
+    fontSize: '0.9rem',
+    minWidth: '100px',
+    color: '#495057',
+    transition: 'background-color 0.2s'
+  },
+  
+  tableRowEven: {
+    backgroundColor: '#ffffff',
+    '&:hover': {
+      backgroundColor: '#f5f9ff'
+    }
+  },
+  
+  tableRowOdd: {
+    backgroundColor: '#f8fafb',
+    '&:hover': {
+      backgroundColor: '#f5f9ff'
+    }
+  },
+  
+  noDataMessage: {
+    padding: '16px',
+    textAlign: 'center',
+    color: '#666'
+  }
+};
+
 // Estructura de tres paneles
 export const MainContainer = styled.div`
   display: flex;
@@ -293,35 +519,104 @@ export const PhotoBox = styled(Box)`
   width: 100%;
   padding: 0;
   margin: 0;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 `;
 
 export const PhotoContainer = styled(Box)`
   position: relative;
   width: 100%;
-  height: 400px;
-  border-radius: 0;
+  max-height: 400px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f5f5f5;
   overflow: hidden;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+  }
 `;
 
-export const OperatorPhoto = styled.img`
+export const OperatorPhoto = styled(Box)`
+  max-width: 100%;
+  max-height: 100%;
+  
+  & img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: 4px;
+    transition: transform 0.3s ease;
+  }
+  
+  &:hover img {
+    transform: scale(1.02);
+  }
+`;
+
+export const SignatureContainer = styled(Box)`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 180px;
+  background-color: #f5f5f5;
+  border-radius: 4px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  width: 100%;
+  
+  &:hover {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+  }
+`;
+
+export const SignatureImage = styled(Box)`
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  
+  & img {
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+    border: 1px solid #eaeaea;
+    background-color: white;
+    padding: 5px;
+    border-radius: 4px;
+    transition: transform 0.3s ease;
+  }
+  
+  &:hover img {
+    transform: scale(1.02);
+  }
 `;
 
+export const NoSignatureText = styled(Typography)`
+  color: text.secondary;
+  font-style: italic;
+`;
 export const PhotoOverlay = styled(Box)`
   position: absolute;
   bottom: 0;
   left: 0;
   width: 100%;
-  background: linear-gradient(transparent, rgba(0,0,0,0.7));
+  background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.5) 50%, rgba(0,0,0,0) 100%);
   padding: 20px 15px 15px;
+  border-radius: 0 0 8px 8px;
 `;
 
 export const OverlayText = styled(Typography)`
   color: white;
   font-weight: bold;
   text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
+  margin: 0;
+  text-align: center;
 `;
 
 export const PhotoErrorPlaceholder = styled(Box)`

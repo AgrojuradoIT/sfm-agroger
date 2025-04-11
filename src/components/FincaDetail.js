@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { FaAngleRight, FaCalendarAlt, FaUser, FaExclamationTriangle, FaCalendar, FaClock, FaIdCard, FaUserAlt, FaChartBar } from 'react-icons/fa';
-import { Card, CardContent, Typography, Grid, LinearProgress, Box, Chip, Divider, Paper } from '@mui/material';
+import { FaAngleRight, FaCalendarAlt, FaUser, FaExclamationTriangle, FaIdCard, FaUserAlt, FaChartBar, FaTimes, FaListAlt } from 'react-icons/fa';
+import { Card, CardContent, Typography, Grid, LinearProgress, Box, Chip, Divider, Button, Modal, IconButton, Tooltip } from '@mui/material';
+import { styles } from '../styles/FincaDetail.styles';
 import {
   FilterPanel,
   EvaluationsPanel,
@@ -12,8 +13,6 @@ import {
   LoadingIndicator,
   PanelsContainer,
   OperatorPhotoContainer,
-  OperatorNameHeader,
-  OperatorTitle,
   PhotoBox,
   PhotoContainer,
   OperatorPhoto,
@@ -21,7 +20,10 @@ import {
   OverlayText,
   PhotoErrorPlaceholder,
   PhotoPlaceholder,
-  ErrorText
+  ErrorText,
+  SignatureContainer,
+  SignatureImage,
+  NoSignatureText
 } from '../styles/FincaDetail.styles';
 import fincaService from '../services/fincaService';
 import { calcularMetricasPolinizacion } from '../utils/calculosPolinizacion';
@@ -47,6 +49,7 @@ const FincaDetail = () => {
   const [error, setError] = useState(null);
   const [usandoDatosEjemplo, setUsandoDatosEjemplo] = useState(false);
   const [mensaje, setMensaje] = useState('');
+  const [modalAbierto, setModalAbierto] = useState(false);
 
   // Extraer fetchData fuera del useEffect para poder reutilizarla
   const fetchData = useCallback(async () => {
@@ -431,11 +434,7 @@ const FincaDetail = () => {
               <OperatorPhotoContainer>
                 <Grid container spacing={0}>
                   <Grid item xs={12}>
-                    <OperatorNameHeader>
-                      <OperatorTitle variant="h3" component="h1">
-                        {selectedEvaluation.polinizador}
-                      </OperatorTitle>
-                    </OperatorNameHeader>
+
                     
                     <Grid container spacing={0}>
                       <Grid item xs={12}>
@@ -447,19 +446,21 @@ const FincaDetail = () => {
                           {console.log('URL de la foto (fotopath):', selectedEvaluation.fotopath)}
                           {console.log('URL que se usará:', selectedEvaluation.fotopach || selectedEvaluation.fotopath)}
                           <PhotoContainer>
-                            <OperatorPhoto 
-                              src={selectedEvaluation.fotopach || selectedEvaluation.fotopath} 
-                              alt="Foto del operario" 
-                              onError={(e) => {
-                                console.error('Error al cargar la imagen:', e);
-                                e.target.onerror = null;
-                                e.target.style.display = 'none';
-                                // Mostrar el placeholder si hay error
-                                e.target.parentNode.parentNode.querySelector('.photo-error-placeholder').style.display = 'flex';
-                              }}
-                            />
+                            <OperatorPhoto>
+                              <img 
+                                src={selectedEvaluation.fotopach || selectedEvaluation.fotopath} 
+                                alt="Foto del operario" 
+                                onError={(e) => {
+                                  console.error('Error al cargar la imagen:', e);
+                                  e.target.onerror = null;
+                                  e.target.style.display = 'none';
+                                  // Mostrar el placeholder si hay error
+                                  e.target.parentNode.parentNode.querySelector('.photo-error-placeholder').style.display = 'flex';
+                                }}
+                              />
+                            </OperatorPhoto>
                             <PhotoOverlay>
-                              <OverlayText variant="h6">
+                              <OverlayText variant="h4" sx={styles.overlayText}>
                                 {selectedEvaluation.polinizador}
                               </OverlayText>
                             </PhotoOverlay>
@@ -483,62 +484,56 @@ const FincaDetail = () => {
                     <Divider sx={{ mb: 3 }} />
                   </Grid>
                   
-                  <Grid item xs={12} md={6}>
-                    <Card elevation={2} sx={{ height: '100%', borderRadius: 2 }}>
+                  <Grid item xs={12} md={6} style={{marginLeft: '20px', marginRight: '20px', width: 'calc(100% - 40px)'}}>
+                    <Card elevation={2} sx={styles.infoCard}>
                       <CardContent>
-                        <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Typography variant="h6" gutterBottom sx={styles.infoCardTitle}>
                           <FaIdCard /> Información General
                         </Typography>
-                        <Box sx={{ mt: 2 }}>
+                        <Box sx={styles.infoCardContent}>
                           <Grid container spacing={2}>
+                            <Grid item xs={6}>
+                              <Tooltip title="Dar click para ver eventos" arrow placement="top">
+                                <Button
+                                  variant="contained"
+                                  onClick={() => setModalAbierto(true)}
+                                  sx={styles.eventosButton}
+                                >
+                                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', mb: 1 }}>
+                                    <FaListAlt style={{ fontSize: '18px', color: '#757575', marginRight: '8px' }} />
+                                    <Typography className="evento-texto" variant="subtitle2" color="text.secondary">Eventos</Typography>
+                                  </Box>
+                                  <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', gap: 1 }}>
+                                    <Typography className="evento-valor" variant="h6" sx={{fontWeight: 'bold', color: '#424242', textAlign: 'center'}}>
+                                      {selectedEvaluation.evaluacionesPolinizacion?.length || 0}
+                                    </Typography>
+                                    <LinearProgress 
+                                      variant="determinate" 
+                                      value={Math.min((selectedEvaluation.evaluacionesPolinizacion?.length || 0) * 10, 100)} 
+                                      sx={styles.progressBar} 
+                                    />
+                                  </Box>
+                                </Button>
+                              </Tooltip>
+                            </Grid>
+                            <Grid item xs={6}>
+                              <Box>
+                                <Typography variant="subtitle2" color="text.secondary">Polinizador</Typography>
+                                <Typography variant="body1" sx={{ fontWeight: 'medium', wordBreak: 'break-word', overflowWrap: 'break-word', hyphens: 'auto', mb: 2 }}>
+                                  {selectedEvaluation.polinizador}
+                                </Typography>
+                              </Box>
+                              <Box>
+                                <Typography variant="subtitle2" color="text.secondary">Evaluador</Typography>
+                                <Typography variant="body1" sx={{ fontWeight: 'medium' }}>{selectedEvaluation.evaluador}</Typography>
+                              </Box>
+                            </Grid>
                             <Grid item xs={6}>
                               <Typography variant="subtitle2" color="text.secondary">ID Evaluación</Typography>
                               <Typography variant="body1" sx={{ fontWeight: 'medium' }}>EvalGen-{selectedEvaluation.id}</Typography>
                             </Grid>
                             <Grid item xs={6}>
-                              <Typography variant="subtitle2" color="text.secondary">Semana</Typography>
-                              <Typography variant="body1" sx={{ fontWeight: 'medium' }}>Semana {selectedEvaluation.semana}</Typography>
-                            </Grid>
-                            <Grid item xs={6}>
-                              <Typography variant="subtitle2" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                <FaCalendar size={14} /> Fecha
-                              </Typography>
-                              <Typography variant="body1" sx={{ fontWeight: 'medium' }}>{selectedEvaluation.fecha}</Typography>
-                            </Grid>
-                            <Grid item xs={6}>
-                              <Typography variant="subtitle2" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                <FaClock size={14} /> Hora
-                              </Typography>
-                              <Typography variant="body1" sx={{ fontWeight: 'medium' }}>{selectedEvaluation.hora}</Typography>
-                            </Grid>
-                            <Grid item xs={6}>
-                              <Typography variant="subtitle2" color="text.secondary">Evaluador</Typography>
-                              <Typography variant="body1" sx={{ fontWeight: 'medium' }}>{selectedEvaluation.evaluador}</Typography>
-                            </Grid>
-                            <Grid item xs={6}>
-                              <Typography variant="subtitle2" color="text.secondary">Polinizador</Typography>
-                              <Typography variant="body1" sx={{ fontWeight: 'medium' }}>{selectedEvaluation.polinizador}</Typography>
-                            </Grid>
-                            <Grid item xs={12}>
-                              <Typography variant="subtitle2" color="text.secondary">Eventos</Typography>
-                              <Box display="flex" alignItems="center" gap={1}>
-                                <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
-                                  {selectedEvaluation.evaluacionesPolinizacion?.length || 0}
-                                </Typography>
-                                <LinearProgress 
-                                  variant="determinate" 
-                                  value={Math.min((selectedEvaluation.evaluacionesPolinizacion?.length || 0) * 10, 100)} 
-                                  sx={{ 
-                                    flexGrow: 1, 
-                                    height: 8, 
-                                    borderRadius: 5,
-                                    backgroundColor: '#e0e0e0',
-                                    '& .MuiLinearProgress-bar': {
-                                      backgroundColor: '#4caf50'
-                                    }
-                                  }} 
-                                />
-                              </Box>
+                              {/* Espacio para mantener la estructura */}
                             </Grid>
                           </Grid>
                         </Box>
@@ -547,38 +542,34 @@ const FincaDetail = () => {
                   </Grid>
                   
                   <Grid item xs={12} md={6}>
-                    <Card elevation={2} sx={{ height: '100%', borderRadius: 2 }}>
-                      <CardContent>
-                        <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <FaUserAlt /> Firma
+                    <Card style={{marginTop: '20px', marginLeft: '20px', marginRight: '20px', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 4px 8px rgba(0,0,0,0.1)', width: 'calc(100% - 40px)'}}>
+                      <CardContent style={{padding: '16px', backgroundColor: '#f8f9fa', borderBottom: '1px solid #e0e0e0', display: 'flex', alignItems: 'center'}}>
+                        <div style={{marginRight: '8px', color: '#2e7d32'}}>
+                          <FaUserAlt />
+                        </div>
+                        <Typography variant="h5" style={{margin: 0, fontWeight: 'bold', color: '#2e7d32'}}>
+                          Firma Del Operario
                         </Typography>
-                        <Box sx={{ mt: 2 }}>
-                          <Box sx={{ 
-                            display: 'flex', 
-                            justifyContent: 'center', 
-                            alignItems: 'center',
-                            height: '180px'
-                          }}>
-                           {(selectedEvaluation.firmapach || selectedEvaluation.firmapath) ? (
-                            <img 
-                              src={selectedEvaluation.firmapach || selectedEvaluation.firmapath} 
-                              alt="Firma del operario" 
-                              style={{
-                                maxWidth: '80%',
-                                maxHeight: '160px'
-                              }}
-                              onError={(e) => {
-                                console.error('Error al cargar la firma:', e);
-                                e.target.style.display = 'none';
-                              }}
-                            />
+                      </CardContent>
+                      <CardContent style={{padding: '24px'}}>
+                        <SignatureContainer>
+                          {(selectedEvaluation.firmapach || selectedEvaluation.firmapath) ? (
+                            <SignatureImage>
+                              <img 
+                                src={selectedEvaluation.firmapach || selectedEvaluation.firmapath} 
+                                alt="Firma del operario" 
+                                onError={(e) => {
+                                  console.error('Error al cargar la firma:', e);
+                                  e.target.style.display = 'none';
+                                }}
+                              />
+                            </SignatureImage>
                           ) : (
-                            <Typography variant="body2" color="text.secondary">
+                            <NoSignatureText variant="body2">
                               No hay firma disponible
-                            </Typography>
+                            </NoSignatureText>
                           )}
-                          </Box>
-                        </Box>
+                        </SignatureContainer>
                       </CardContent>
                     </Card>
                   </Grid>
@@ -708,7 +699,7 @@ const FincaDetail = () => {
                                     height: '6px',
                                     background: 'linear-gradient(90deg, #4caf50, #81c784)'
                                   }}></div>
-                                  <Typography variant="h3" style={{fontWeight: 'bold', color: '#4caf50', marginBottom: '8px', marginTop: '8px', textAlign: 'center'}}>
+                                  <Typography variant="h3" style={{color: '#4caf50', fontWeight: 'bold', marginBottom: '8px', marginTop: '8px', textAlign: 'center'}}>
                                     {metricas.proporcionalidadAntesis.toFixed(2)}%
                                   </Typography>
                                   <Chip 
@@ -1016,6 +1007,7 @@ const FincaDetail = () => {
                               ))}
                             </Grid>
                           </Grid>
+
                         </Grid>
                       </>
                     );
@@ -1033,6 +1025,82 @@ const FincaDetail = () => {
           )}
         </DetailPanel>
       </PanelsContainer>
+
+      {/* Modal para mostrar la tabla de eventos */}
+      <Modal
+        open={modalAbierto}
+        onClose={() => setModalAbierto(false)}
+        aria-labelledby="modal-eventos-titulo"
+        aria-describedby="modal-eventos-descripcion"
+      >
+        <Box sx={styles.modalContent}>
+          <IconButton 
+            aria-label="cerrar" 
+            onClick={() => setModalAbierto(false)}
+            sx={styles.closeButton}
+          >
+            <FaTimes />
+          </IconButton>
+          
+          <Box sx={styles.tableContainer}>
+            <table style={styles.table}>
+              <thead>
+                <tr>
+                  <th style={styles.tableHeaderCell}>Fecha</th>
+                  <th style={styles.tableHeaderCell}>Hora</th>
+                  <th style={styles.tableHeaderCell}>Semana</th>
+                  <th style={styles.tableHeaderCellLeft}>Ubicación</th>
+                  <th style={styles.tableHeaderCell}>Lote</th>
+                  <th style={styles.tableHeaderCell}>Sección</th>
+                  <th style={styles.tableHeaderCell}>Palma</th>
+                  <th style={styles.tableHeaderCell}>Inflorescencia</th>
+                  <th style={styles.tableHeaderCell}>Antesis</th>
+                  <th style={styles.tableHeaderCell}>Antesis Dejadas</th>
+                  <th style={styles.tableHeaderCell}>Post Antesis</th>
+                  <th style={styles.tableHeaderCell}>Post Antesis Dejadas</th>
+                  <th style={styles.tableHeaderCell}>Espate</th>
+                  <th style={styles.tableHeaderCell}>Aplicación</th>
+                  <th style={styles.tableHeaderCell}>Marcación</th>
+                  <th style={styles.tableHeaderCell}>Repaso 1</th>
+                  <th style={styles.tableHeaderCell}>Repaso 2</th>
+                  <th style={styles.tableHeaderCell}>Observaciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {selectedEvaluation && selectedEvaluation.evaluacionesPolinizacion && selectedEvaluation.evaluacionesPolinizacion.map((evaluacion, index) => (
+                  <tr key={index} style={index % 2 === 0 ? styles.tableRowEven : styles.tableRowOdd}>
+                    <td style={styles.tableDataCell}>{selectedEvaluation.fecha}</td>
+                    <td style={styles.tableDataCell}>{selectedEvaluation.hora}</td>
+                    <td style={styles.tableDataCell}>{selectedEvaluation.semana}</td>
+                    <td style={styles.tableDataCellLeft}>{evaluacion.ubicacion || '-'}</td>
+                    <td style={styles.tableDataCell}>{evaluacion.lote || selectedEvaluation.lote || '-'}</td>
+                    <td style={styles.tableDataCell}>{evaluacion.seccion || '-'}</td>
+                    <td style={styles.tableDataCell}>{evaluacion.palma || '-'}</td>
+                    <td style={styles.tableDataCell}>{evaluacion.inflorescencia || '0'}</td>
+                    <td style={styles.tableDataCell}>{evaluacion.antesis || '0'}</td>
+                    <td style={styles.tableDataCell}>{evaluacion.antesisDejadas || '0'}</td>
+                    <td style={styles.tableDataCell}>{evaluacion.postantesis || '0'}</td>
+                    <td style={styles.tableDataCell}>{evaluacion.postantesisDejadas || '0'}</td>
+                    <td style={styles.tableDataCell}>{evaluacion.espate || '0'}</td>
+                    <td style={styles.tableDataCell}>{evaluacion.aplicacion || '0'}</td>
+                    <td style={styles.tableDataCell}>{evaluacion.marcacion || '0'}</td>
+                    <td style={styles.tableDataCell}>{evaluacion.repaso1 || '0'}</td>
+                    <td style={styles.tableDataCell}>{evaluacion.repaso2 || '0'}</td>
+                    <td style={styles.tableDataCell}>{evaluacion.observaciones || '-'}</td>
+                  </tr>
+                ))}
+                {(!selectedEvaluation || !selectedEvaluation.evaluacionesPolinizacion || selectedEvaluation.evaluacionesPolinizacion.length === 0) && (
+                  <tr>
+                    <td colSpan="18" style={styles.noDataMessage}>
+                      No hay datos de evaluación disponibles
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </Box>
+        </Box>
+      </Modal>
     </>
   );
 };
