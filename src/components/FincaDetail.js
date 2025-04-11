@@ -1551,16 +1551,16 @@ const FincaDetail = () => {
                       <td style={styles.eventosTableDataCellWide}>{evaluacion.lote || selectedEvaluation.lote || '-'}</td>
                       <td style={styles.eventosTableDataCell}>{evaluacion.seccion || '-'}</td>
                       <td style={styles.eventosTableDataCell}>{evaluacion.palma || '-'}</td>
-                      <td style={{ ...styles.eventosTableDataCell, color: evaluacion.inflorescencia > 0 ? '#2e7d32' : 'inherit' }}>{evaluacion.inflorescencia || '0'}</td>
-                      <td style={{ ...styles.eventosTableDataCell, color: evaluacion.antesis > 0 ? '#2e7d32' : 'inherit' }}>{evaluacion.antesis || '0'}</td>
-                      <td style={{ ...styles.eventosTableDataCell, color: evaluacion.antesisDejadas > 0 ? '#2e7d32' : 'inherit' }}>{evaluacion.antesisDejadas || '0'}</td>
-                      <td style={{ ...styles.eventosTableDataCell, color: evaluacion.postantesis > 0 ? '#2e7d32' : 'inherit' }}>{evaluacion.postantesis || '0'}</td>
-                      <td style={{ ...styles.eventosTableDataCell, color: evaluacion.postantesisDejadas > 0 ? '#2e7d32' : 'inherit' }}>{evaluacion.postantesisDejadas || '0'}</td>
-                      <td style={{ ...styles.eventosTableDataCell, color: evaluacion.espate > 0 ? '#2e7d32' : 'inherit' }}>{evaluacion.espate || '0'}</td>
-                      <td style={{ ...styles.eventosTableDataCell, color: evaluacion.aplicacion > 0 ? '#2e7d32' : 'inherit' }}>{evaluacion.aplicacion || '0'}</td>
-                      <td style={{ ...styles.eventosTableDataCell, color: evaluacion.marcacion > 0 ? '#2e7d32' : 'inherit' }}>{evaluacion.marcacion || '0'}</td>
-                      <td style={{ ...styles.eventosTableDataCell, color: evaluacion.repaso1 > 0 ? '#2e7d32' : 'inherit' }}>{evaluacion.repaso1 || '0'}</td>
-                      <td style={{ ...styles.eventosTableDataCell, color: evaluacion.repaso2 > 0 ? '#2e7d32' : 'inherit' }}>{evaluacion.repaso2 || '0'}</td>
+                      <td style={{ ...styles.eventosTableDataCell, color: evaluacion.inflorescencia > 0 ? '#2e7d32' : 'inherit' }}>{evaluacion.inflorescencia === 0 ? '0' : evaluacion.inflorescencia || ''}</td>
+                      <td style={{ ...styles.eventosTableDataCell, color: evaluacion.antesis > 0 ? '#2e7d32' : 'inherit' }}>{evaluacion.antesis === 0 ? '0' : evaluacion.antesis || ''}</td>
+                      <td style={{ ...styles.eventosTableDataCell, color: evaluacion.antesisDejadas > 0 ? '#2e7d32' : 'inherit' }}>{evaluacion.antesisDejadas === 0 ? '0' : evaluacion.antesisDejadas || ''}</td>
+                      <td style={{ ...styles.eventosTableDataCell, color: evaluacion.postantesis > 0 ? '#2e7d32' : 'inherit' }}>{evaluacion.postantesis === 0 ? '0' : evaluacion.postantesis || ''}</td>
+                      <td style={{ ...styles.eventosTableDataCell, color: evaluacion.postantesisDejadas > 0 ? '#2e7d32' : 'inherit' }}>{evaluacion.postantesisDejadas === 0 ? '0' : evaluacion.postantesisDejadas || ''}</td>
+                      <td style={{ ...styles.eventosTableDataCell, color: evaluacion.espate > 0 ? '#2e7d32' : 'inherit' }}>{evaluacion.espate === 0 ? '0' : evaluacion.espate || ''}</td>
+                      <td style={{ ...styles.eventosTableDataCell, color: evaluacion.aplicacion > 0 ? '#2e7d32' : 'inherit' }}>{evaluacion.aplicacion === 0 ? '0' : evaluacion.aplicacion || ''}</td>
+                      <td style={{ ...styles.eventosTableDataCell, color: evaluacion.marcacion > 0 ? '#2e7d32' : 'inherit' }}>{evaluacion.marcacion === 0 ? '0' : evaluacion.marcacion || ''}</td>
+                      <td style={{ ...styles.eventosTableDataCell, color: evaluacion.repaso1 > 0 ? '#2e7d32' : 'inherit' }}>{evaluacion.repaso1 === 0 ? '0' : evaluacion.repaso1 || ''}</td>
+                      <td style={{ ...styles.eventosTableDataCell, color: evaluacion.repaso2 > 0 ? '#2e7d32' : 'inherit' }}>{evaluacion.repaso2 === 0 ? '0' : evaluacion.repaso2 || ''}</td>
                       <td style={styles.eventosTableDataCellLeft}>{evaluacion.observaciones || '-'}</td>
                     </tr>
                   ))}
