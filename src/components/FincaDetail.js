@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { FaAngleRight, FaCalendarAlt, FaUser, FaExclamationTriangle, FaCalendar, FaClock, FaIdCard, FaUserAlt, FaChartBar, FaTimes, FaListAlt, FaFileExcel } from 'react-icons/fa';
-import { Card, CardContent, Typography, Grid, LinearProgress, Box, Chip, Divider, Paper, Button, Modal, Tooltip } from '@mui/material';
+import { FaAngleRight, FaCalendarAlt, FaUser, FaExclamationTriangle, FaIdCard, FaUserAlt, FaChartBar, FaTimes, FaListAlt, FaFileExcel } from 'react-icons/fa';
+import { Card, CardContent, Typography, Grid, LinearProgress, Box, Chip, Divider, Button, Modal, Tooltip } from '@mui/material';
 import { styles } from '../styles/FincaDetail.styles';
 import '../styles/animations.css';
 import {
@@ -14,8 +14,6 @@ import {
   LoadingIndicator,
   PanelsContainer,
   OperatorPhotoContainer,
-  OperatorNameHeader,
-  OperatorTitle,
   PhotoBox,
   PhotoContainer,
   OperatorPhoto,
@@ -26,7 +24,9 @@ import {
   ErrorText,
   SignatureContainer,
   SignatureImage,
-  NoSignatureText
+  NoSignatureText,
+  EvaluacionesList,
+  EvaluacionItem
 } from '../styles/FincaDetail.styles';
 import fincaService from '../services/fincaService';
 import * as XLSX from 'xlsx';
@@ -51,7 +51,6 @@ const FincaDetail = () => {
   const [todasLasEvaluaciones, setTodasLasEvaluaciones] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [usandoDatosEjemplo, setUsandoDatosEjemplo] = useState(false);
   const [mensaje, setMensaje] = useState('');
   const [modalAbierto, setModalAbierto] = useState(false);
   
@@ -136,7 +135,6 @@ const FincaDetail = () => {
         setEvaluacionesPorOperario({});
       }
       
-      setUsandoDatosEjemplo(apiResponse.usandoDatosEjemplo || false);
       setError(null);
       
       // Limpiar selecciones cuando se cargan nuevos datos
@@ -255,6 +253,21 @@ const FincaDetail = () => {
         setSelectedEvaluation(null);
       }
     }
+  };
+
+  // Función para seleccionar una evaluación específica por su ID
+  const selectEvaluacion = (evaluacion) => {
+    console.log('Seleccionando evaluación específica:', evaluacion.id);
+    setSelectedEvaluation(evaluacion);
+  };
+  
+  // Función auxiliar para obtener la sección de una evaluación
+  const getSeccion = (evaluacion) => {
+    // Intentar obtener la sección de diferentes lugares posibles en el objeto de evaluación
+    if (evaluacion?.seccion) return evaluacion.seccion;
+    if (evaluacion?.evaluacionesPolinizacion?.[0]?.seccion) return evaluacion.evaluacionesPolinizacion[0].seccion;
+    if (evaluacion?.lote) return evaluacion.lote; // Usar lote como fallback si no hay sección
+    return null;
   };
 
   const goToHome = () => {
@@ -444,35 +457,8 @@ const FincaDetail = () => {
         </div>
       </Navigation>
       
-      {usandoDatosEjemplo && (
-        <div style={{ 
-          padding: '10px', 
-          background: '#fff3cd', 
-          color: '#856404', 
-          borderRadius: '4px', 
-          margin: '10px', 
-          fontSize: '14px',
-          textAlign: 'center',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '8px'
-        }}>
-          <FaExclamationTriangle />
-          Mostrando datos de ejemplo. No se pudo conectar con la API.
-        </div>
-      )}
-      
       {mensaje && (
-        <div style={{ 
-          padding: '10px', 
-          background: '#d4edda', 
-          color: '#155724', 
-          borderRadius: '4px', 
-          margin: '10px', 
-          fontSize: '14px',
-          textAlign: 'center' 
-        }}>
+        <div style={styles.successMessage}>
           {mensaje}
         </div>
       )}
@@ -553,26 +539,53 @@ const FincaDetail = () => {
           <div className="panel-header">
             <FaUser /> Operarios
           </div>
-          {!selectedDate ? (
-            <div style={{ padding: '15px', textAlign: 'center', color: '#666' }}>
-              Selecciona una fecha para ver los operarios
-            </div>
-          ) : hayOperariosDisponibles ? (
-            operariosOrdenados.map(([operario, evals]) => (
-              <OperatorHeader 
-                key={operario}
-                onClick={() => selectOperator(operario)}
-                selected={selectedOperator === operario}
-              >
-                <span className="operator-name">{operario}</span>
-                <span className="operator-count">{evals.length} evaluaciones</span>
-              </OperatorHeader>
-            ))
-          ) : (
-            <div style={{ padding: '15px', textAlign: 'center', color: '#666' }}>
-              No hay operarios disponibles para esta fecha
-            </div>
-          )}
+          <div className="panel-content">
+            {!selectedDate ? (
+              <div style={{ padding: '15px', textAlign: 'center', color: '#666' }}>
+                Selecciona una fecha para ver los operarios
+              </div>
+            ) : hayOperariosDisponibles ? (
+              <div className="operator-list">
+                {operariosOrdenados.map(([operario, evals]) => (
+                  <React.Fragment key={operario}>
+                    <OperatorHeader 
+                      onClick={() => selectOperator(operario)}
+                      selected={selectedOperator === operario}
+                    >
+                      <span className="operator-name">{operario}</span>
+                      <span className="operator-count">{evals.length} evaluaciones</span>
+                    </OperatorHeader>
+                    
+                    {/* Mostrar lista de evaluaciones si el operario está seleccionado y tiene más de una evaluación */}
+                    {selectedOperator === operario && evals.length > 1 && (
+                      <EvaluacionesList>
+                        {evals.map(evaluacion => (
+                          <EvaluacionItem 
+                            key={evaluacion.id} 
+                            onClick={() => selectEvaluacion(evaluacion)}
+                            selected={selectedEvaluation && selectedEvaluation.id === evaluacion.id}
+                          >
+                            <div className="evaluacion-fecha">
+                              <strong>Fecha:</strong> {evaluacion.fecha} <strong>Hora:</strong> {evaluacion.hora || 'No especificada'}
+                            </div>
+                            {evaluacion.seccion && (
+                              <div className="evaluacion-seccion">Sección: {evaluacion.seccion}</div>
+                            )}
+                          </EvaluacionItem>
+                        ))}
+                      </EvaluacionesList>
+                    )}
+                  </React.Fragment>
+                ))}
+                {/* Elemento espaciador para garantizar scroll completo */}
+                <div style={{ height: '60px' }}></div>
+              </div>
+            ) : (
+              <div style={{ padding: '15px', textAlign: 'center', color: '#666' }}>
+                No hay operarios disponibles para esta fecha
+              </div>
+            )}
+          </div>
         </EvaluationsPanel>
 
         {/* Panel de Detalles */}
@@ -580,6 +593,7 @@ const FincaDetail = () => {
           {selectedEvaluation ? (
             <>
               {console.log('Datos completos de la evaluación:', selectedEvaluation)}
+              {console.log('Todos los campos de la evaluación:', Object.keys(selectedEvaluation))}
               {console.log('Campos de imagen disponibles:', {
                 fotopach: selectedEvaluation.fotopach,
                 fotopath: selectedEvaluation.fotopath,
@@ -655,48 +669,18 @@ const FincaDetail = () => {
                                   onClick={() => setModalAbierto(true)}
                                   sx={{
                                     ...styles.eventosButton,
-                                    height: '100%',
-                                    backgroundColor: '#f5f5f5',
-                                    borderRadius: '8px',
-                                    boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
-                                    position: 'relative',
-                                    overflow: 'hidden',
-                                    padding: '12px',
-                                    background: 'linear-gradient(135deg, #f9f9f9 0%, #f0f0f0 100%)',
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    '&:hover': {
-                                      boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
-                                      transform: 'translateY(-2px)'
-                                    },
-                                    '&::before': {
-                                      content: '""',
-                                      position: 'absolute',
-                                      top: 0,
-                                      left: 0,
-                                      width: '100%',
-                                      height: '6px',
-                                      background: 'linear-gradient(90deg, #4caf50, #81c784)'
-                                    }
+                                    ...styles.eventosButtonDetailed
                                   }}
                                 >
                                   <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
-                                    <FaListAlt style={{ fontSize: '24px', color: '#4caf50', marginBottom: '8px' }} />
-                                    <Typography variant="h5" sx={{ fontWeight: 'bold', color: '#2e7d32', marginBottom: '8px', textAlign: 'center' }}>
+                                    <FaListAlt style={styles.eventosIcon} />
+                                    <Typography variant="h5" sx={styles.eventosCount}>
                                       {selectedEvaluation.evaluacionesPolinizacion?.length || 0}
                                     </Typography>
                                     <Chip 
                                       label="Eventos"
                                       color="success"
-                                      sx={{ 
-                                        fontSize: '0.85rem', 
-                                        fontWeight: 'bold', 
-                                        height: 28, 
-                                        background: 'linear-gradient(90deg, #4caf50, #2e7d32)',
-                                        margin: '0 auto'
-                                      }}
+                                      sx={styles.eventosChip}
                                     />
                                   </Box>
                                 </Button>
@@ -705,11 +689,38 @@ const FincaDetail = () => {
                             <Grid item xs={4} sx={{ display: 'flex', flexDirection: 'column' }}>
                               <Typography variant="subtitle2" color="text.secondary">ID Evaluación</Typography>
                               <Typography variant="body1" sx={{ fontWeight: 'medium' }}>EvalGen-{selectedEvaluation.id}</Typography>
-                              <Typography variant="subtitle2" color="text.secondary">Polinizador</Typography>
+                              
+                              {selectedEvaluation.semana && (
+                                <>
+                                  <Typography variant="subtitle2" color="text.secondary" sx={{ mt: 1 }}>Semana</Typography>
+                                  <Typography variant="body1" sx={{ fontWeight: 'medium' }}>Semana {selectedEvaluation.semana}</Typography>
+                                </>
+                              )}
+                              
+                              <Typography variant="subtitle2" color="text.secondary" sx={{ mt: 1 }}>Polinizador</Typography>
                               <Typography variant="body1" sx={{ fontWeight: 'medium' }}>{selectedEvaluation.polinizador}</Typography>
                             </Grid>
                             <Grid item xs={4}>
-                              <Typography variant="subtitle2" color="text.secondary">Evaluador</Typography>
+                              <Box sx={{ display: 'flex', gap: 2 }}>
+                                <Box sx={{ flex: 1 }}>
+                                  {getSeccion(selectedEvaluation) && (
+                                    <>
+                                      <Typography variant="subtitle2" color="text.secondary">Sección</Typography>
+                                      <Typography variant="body1" sx={{ fontWeight: 'medium' }}>{getSeccion(selectedEvaluation)}</Typography>
+                                    </>
+                                  )}
+                                </Box>
+                                <Box sx={{ flex: 1 }}>
+                                  {selectedEvaluation.lote && (
+                                    <>
+                                      <Typography variant="subtitle2" color="text.secondary">Lote</Typography>
+                                      <Typography variant="body1" sx={{ fontWeight: 'medium' }}>{selectedEvaluation.lote}</Typography>
+                                    </>
+                                  )}
+                                </Box>
+                              </Box>
+                              
+                              <Typography variant="subtitle2" color="text.secondary" sx={{ mt: 1 }}>Evaluador</Typography>
                               <Typography variant="body1" sx={{ fontWeight: 'medium' }}>{selectedEvaluation.evaluador}</Typography>
                             </Grid>
                           </Grid>
@@ -1470,7 +1481,7 @@ const FincaDetail = () => {
         </DetailPanel>
       </PanelsContainer>
 
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', padding: '8px' }}>
+      <Box sx={styles.exportButtonContainer}>
         <Button 
           variant="contained" 
           onClick={exportToExcel}
@@ -1487,21 +1498,7 @@ const FincaDetail = () => {
         aria-labelledby="modal-eventos-titulo"
         aria-describedby="modal-eventos-descripcion"
       >
-        <Box sx={{
-          position: 'absolute',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          width: '90%',
-          height: '80%',
-          bgcolor: 'background.paper',
-          border: '1px solid #ddd',
-          boxShadow: 24,
-          p: 0,
-          display: 'flex',
-          flexDirection: 'column',
-          overflow: 'hidden'
-        }}>
+        <Box sx={styles.modalEventosContainer}>
           <Box sx={styles.eventosModalHeader}>
             <Typography variant="h6" sx={styles.eventosModalTitle}>
               Eventos de Evaluación
@@ -1512,7 +1509,7 @@ const FincaDetail = () => {
               size="small"
               sx={styles.eventosModalCloseButton}
             >
-              <FaTimes style={{ fontSize: '18px' }} />
+              <FaTimes style={styles.closeIcon} />
             </Button>
           </Box>
           

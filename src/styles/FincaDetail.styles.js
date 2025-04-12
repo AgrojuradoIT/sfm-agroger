@@ -58,7 +58,61 @@ export const styles = {
     }
   },
   
+  // Estilos adicionales para el botón de eventos detallado
+  eventosButtonDetailed: {
+    height: '100%',
+    backgroundColor: '#f5f5f5',
+    borderRadius: '8px',
+    boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+    position: 'relative',
+    overflow: 'hidden',
+    padding: '12px',
+    background: 'linear-gradient(135deg, #f9f9f9 0%, #f0f0f0 100%)',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    '&:hover': {
+      boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
+      transform: 'translateY(-2px)'
+    },
+    '&::before': {
+      content: '""',
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      width: '100%',
+      height: '6px',
+      background: 'linear-gradient(90deg, #4caf50, #81c784)'
+    }
+  },
+  
+  // Estilos para el chip de eventos
+  eventosChip: {
+    fontSize: '0.85rem', 
+    fontWeight: 'bold', 
+    height: 28, 
+    background: 'linear-gradient(90deg, #4caf50, #2e7d32)',
+    margin: '0 auto'
+  },
+  
+  // Estilos para el icono de eventos
   eventosIcon: {
+    fontSize: '24px', 
+    color: '#4caf50', 
+    marginBottom: '8px'
+  },
+  
+  // Estilos para el texto del contador de eventos
+  eventosCount: {
+    fontWeight: 'bold', 
+    color: '#2e7d32', 
+    marginBottom: '8px', 
+    textAlign: 'center'
+  },
+  
+  // Estilos para el icono de eventos en botones pequeños
+  eventosIconSmall: {
     fontSize: '20px',
     color: '#4caf50',
     marginRight: '8px'
@@ -98,6 +152,26 @@ export const styles = {
     flexDirection: 'column',
     alignItems: 'center'
   },
+  
+  // Estilos para el contenedor del modal de eventos
+  modalEventosContainer: {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    width: '90%',
+    height: '80%',
+    bgcolor: 'background.paper',
+    border: '1px solid #ddd',
+    boxShadow: 24,
+    p: 0,
+    display: 'flex',
+    flexDirection: 'column',
+    borderRadius: '8px',
+    overflow: 'hidden'
+  },
+  
+
   
   modalHeader: {
     display: 'flex',
@@ -336,6 +410,11 @@ export const styles = {
     }
   },
   
+  // Estilo para el icono de cierre del modal
+  closeIcon: {
+    fontSize: '18px'
+  },
+  
   eventosModalContent: {
     flex: 1,
     overflow: 'auto',
@@ -344,6 +423,39 @@ export const styles = {
   
   eventosModalTableContainer: {
     minWidth: '100%'
+  },
+  
+  // Estilo para el contenedor del botón de exportar a Excel
+  exportButtonContainer: {
+    display: 'flex', 
+    justifyContent: 'flex-end', 
+    padding: '8px'
+  },
+  
+  // Estilos para los mensajes de alerta
+  alertMessage: {
+    padding: '10px', 
+    background: '#fff3cd', 
+    color: '#856404', 
+    borderRadius: '4px', 
+    margin: '10px', 
+    fontSize: '14px',
+    textAlign: 'center',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '8px'
+  },
+  
+  // Estilos para los mensajes de éxito
+  successMessage: {
+    padding: '10px', 
+    background: '#d4edda', 
+    color: '#155724', 
+    borderRadius: '4px', 
+    margin: '10px', 
+    fontSize: '14px',
+    textAlign: 'center' 
   },
   
   // Estilos para la tabla de eventos
@@ -527,7 +639,10 @@ export const EvaluationsPanel = styled.div`
   min-width: 300px;
   background-color: white;
   border-right: 1px solid #ddd;
-  overflow-y: auto;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   
   .panel-header {
     padding: 15px;
@@ -537,6 +652,22 @@ export const EvaluationsPanel = styled.div`
     display: flex;
     align-items: center;
     gap: 8px;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    flex-shrink: 0; /* Evita que el encabezado se encoja */
+  }
+  
+  .panel-content {
+    overflow-y: auto;
+    flex: 1;
+    padding-bottom: 20px; /* Espacio en blanco después del último operario */
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .operator-list {
+    padding-bottom: 80px; /* Espacio adicional después del último operario */
   }
 `;
 
@@ -689,6 +820,43 @@ export const EvaluationItem = styled.div`
   .warning-icon {
     margin-right: 10px;
     color: #f57c00;
+  }
+`;
+
+export const EvaluacionesList = styled.div`
+  margin-top: 10px;
+  border-top: 1px solid #ddd;
+  max-height: 300px;
+  overflow-y: auto;
+`;
+
+export const EvaluacionItem = styled.div`
+  padding: 12px 15px;
+  border-bottom: 1px solid #eee;
+  cursor: pointer;
+  background-color: ${props => props.selected ? '#e8f0fe' : 'white'};
+  display: flex;
+  flex-direction: column;
+  
+  &:hover {
+    background-color: ${props => props.selected ? '#e8f0fe' : '#f8f9fa'};
+  }
+  
+  .evaluacion-fecha {
+    font-size: 13px;
+    color: ${props => props.selected ? '#1976d2' : '#333'};
+    margin-bottom: 4px;
+    
+    strong {
+      font-weight: ${props => props.selected ? 'bold' : '600'};
+      color: ${props => props.selected ? '#1976d2' : '#555'};
+    }
+  }
+  
+  .evaluacion-seccion {
+    font-size: 12px;
+    color: #666;
+    margin-top: 2px;
   }
 `;
 
