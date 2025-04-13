@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, Component } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { FaAngleRight, FaCalendarAlt, FaUser, FaExclamationTriangle, FaIdCard, FaUserAlt, FaChartBar, FaTimes, FaListAlt, FaFileExcel } from 'react-icons/fa';
 import { Card, CardContent, Typography, Grid, LinearProgress, Box, Chip, Divider, Button, Modal, Tooltip } from '@mui/material';
@@ -40,6 +40,51 @@ const FINCA_ID_MAP = {
   'd': '4'
 };
 
+// Error Boundary para manejar errores en la interfaz
+class ErrorBoundary extends Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error("Error caught by boundary:", error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      // Renderizar la interfaz alternativa
+      return (
+        <div style={{ 
+          padding: '20px', 
+          backgroundColor: '#f8d7da', 
+          color: '#721c24', 
+          borderRadius: '8px',
+          textAlign: 'center',
+          margin: '20px'
+        }}>
+          <h3>Ha ocurrido un error al mostrar este componente</h3>
+          <p>Error: {this.state.error?.message || 'Error desconocido'}</p>
+          <Button 
+            variant="contained" 
+            color="error"
+            onClick={() => this.setState({ hasError: false, error: null })}
+            style={{ marginTop: '10px' }}
+          >
+            Reintentar
+          </Button>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
 const FincaDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -54,6 +99,25 @@ const FincaDetail = () => {
   const [mensaje, setMensaje] = useState('');
   const [modalAbierto, setModalAbierto] = useState(false);
   
+  // Variable para determinar si el modal debe mostrarse
+  const mostrarModal = modalAbierto && !!selectedEvaluation;
+  
+  // Función para abrir el modal de manera segura
+  const abrirModal = () => {
+    if (selectedEvaluation) {
+      console.log("Abriendo modal de eventos para", selectedEvaluation.polinizador || "evaluación");
+      setModalAbierto(true);
+    } else {
+      console.log("No se puede abrir el modal: No hay evaluación seleccionada");
+    }
+  };
+  
+  // Función para cerrar el modal
+  const cerrarModal = () => {
+    console.log("Cerrando modal de eventos");
+    setModalAbierto(false);
+  };
+
   // Efecto para animar las barras de progreso cuando son visibles
   useEffect(() => {
     if (!isLoading && selectedEvaluation) {
@@ -263,10 +327,15 @@ const FincaDetail = () => {
   
   // Función auxiliar para obtener la sección de una evaluación
   const getSeccion = (evaluacion) => {
+    if (!evaluacion) return null;
     // Intentar obtener la sección de diferentes lugares posibles en el objeto de evaluación
-    if (evaluacion?.seccion) return evaluacion.seccion;
-    if (evaluacion?.evaluacionesPolinizacion?.[0]?.seccion) return evaluacion.evaluacionesPolinizacion[0].seccion;
-    if (evaluacion?.lote) return evaluacion.lote; // Usar lote como fallback si no hay sección
+    if (evaluacion.seccion) return evaluacion.seccion;
+    if (evaluacion.evaluacionesPolinizacion && 
+        evaluacion.evaluacionesPolinizacion.length > 0 &&
+        evaluacion.evaluacionesPolinizacion[0].seccion) {
+      return evaluacion.evaluacionesPolinizacion[0].seccion;
+    }
+    if (evaluacion.lote) return evaluacion.lote; // Usar lote como fallback si no hay sección
     return null;
   };
 
@@ -601,52 +670,52 @@ const FincaDetail = () => {
                 firmapath: selectedEvaluation.firmapath
               })}
               <OperatorPhotoContainer>
-                <Grid container spacing={0}>
+                <Grid container spacing={2}>
                   <Grid item xs={12}>
-                    <Grid container spacing={0}>
+                    <Grid container spacing={2}>
                       <Grid item xs={12}>
-                        <PhotoBox sx={{ marginTop: '20px' }}>
-                      {/* Verificar ambos campos posibles para la foto */}
-                      {(selectedEvaluation.fotopach || selectedEvaluation.fotopath) ? (
-                        <>
-                          {console.log('URL de la foto (fotopach):', selectedEvaluation.fotopach)}
-                          {console.log('URL de la foto (fotopath):', selectedEvaluation.fotopath)}
-                          {console.log('URL que se usará:', selectedEvaluation.fotopach || selectedEvaluation.fotopath)}
-                          <PhotoContainer>
-                            <OperatorPhoto>
-                              <img 
-                                src={selectedEvaluation.fotopach || selectedEvaluation.fotopath} 
-                                alt="Foto del operario" 
-                                onError={(e) => {
-                                  console.error('Error al cargar la imagen:', e);
-                                  e.target.onerror = null;
-                                  e.target.style.display = 'none';
-                                  // Mostrar el placeholder si hay error
-                                  e.target.parentNode.parentNode.querySelector('.photo-error-placeholder').style.display = 'flex';
-                                }}
-                              />
-                            </OperatorPhoto>
-                            <PhotoOverlay>
-                              <OverlayText 
-                                variant="h4" 
-                                sx={styles.overlayText}
-                              >
-                                {selectedEvaluation.polinizador}
-                              </OverlayText>
-                            </PhotoOverlay>
-                          </PhotoContainer>
-                          <PhotoErrorPlaceholder className="photo-error-placeholder">
-                            <FaUserAlt size={40} />
-                            <ErrorText variant="caption">
-                              No se pudo cargar la imagen
-                            </ErrorText>
-                          </PhotoErrorPlaceholder>
-                        </>
-                      ) : (
-                        <PhotoPlaceholder>
-                          <FaUserAlt size={50} />
-                        </PhotoPlaceholder>
-                      )}
+                        <PhotoBox>
+                        {/* Verificar ambos campos posibles para la foto */}
+                        {(selectedEvaluation.fotopach || selectedEvaluation.fotopath) ? (
+                          <>
+                            {console.log('URL de la foto (fotopach):', selectedEvaluation.fotopach)}
+                            {console.log('URL de la foto (fotopath):', selectedEvaluation.fotopath)}
+                            {console.log('URL que se usará:', selectedEvaluation.fotopach || selectedEvaluation.fotopath)}
+                            <PhotoContainer>
+                              <OperatorPhoto>
+                                <img 
+                                  src={selectedEvaluation.fotopach || selectedEvaluation.fotopath} 
+                                  alt="Foto del operario" 
+                                  onError={(e) => {
+                                    console.error('Error al cargar la imagen:', e);
+                                    e.target.onerror = null;
+                                    e.target.style.display = 'none';
+                                    // Mostrar el placeholder si hay error
+                                    e.target.parentNode.parentNode.querySelector('.photo-error-placeholder').style.display = 'flex';
+                                  }}
+                                />
+                              </OperatorPhoto>
+                              <PhotoOverlay>
+                                <OverlayText 
+                                  variant="h4" 
+                                  sx={styles.overlayText}
+                                >
+                                  {selectedEvaluation?.polinizador || 'Sin nombre'}
+                                </OverlayText>
+                              </PhotoOverlay>
+                            </PhotoContainer>
+                            <PhotoErrorPlaceholder className="photo-error-placeholder">
+                              <FaUserAlt size={40} />
+                              <ErrorText variant="caption">
+                                No se pudo cargar la imagen
+                              </ErrorText>
+                            </PhotoErrorPlaceholder>
+                          </>
+                        ) : (
+                          <PhotoPlaceholder>
+                            <FaUserAlt size={50} />
+                          </PhotoPlaceholder>
+                        )}
                         </PhotoBox>
                       </Grid>
                     </Grid>
@@ -654,19 +723,23 @@ const FincaDetail = () => {
                     <Divider sx={{ mb: 3 }} />
                   </Grid>
                   
-                  <Grid item xs={12} md={6} style={{marginLeft: '20px', marginRight: '20px', width: 'calc(100% - 40px)'}}>
-                    <Card elevation={2} sx={styles.infoCard}>
+                  <Grid item xs={12} md={6} sx={{ mb: { xs: 3, md: 0 } }}>
+                    <Card elevation={2} sx={{
+                      ...styles.infoCard,
+                      mx: { xs: 2, md: 3 },
+                      width: { xs: 'calc(100% - 16px)', md: 'calc(100% - 24px)' }
+                    }}>
                       <CardContent>
                         <Typography variant="h6" gutterBottom sx={styles.infoCardTitle}>
                           <FaIdCard /> Información General
                         </Typography>
                         <Box sx={styles.infoCardContent}>
                           <Grid container spacing={2}>
-                            <Grid item xs={4}>
+                            <Grid item xs={12} sm={4}>
                               <Tooltip title="Dar click para ver eventos" arrow placement="top">
                                 <Button
                                   variant="contained"
-                                  onClick={() => setModalAbierto(true)}
+                                  onClick={abrirModal}
                                   sx={{
                                     ...styles.eventosButton,
                                     ...styles.eventosButtonDetailed
@@ -675,7 +748,7 @@ const FincaDetail = () => {
                                   <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
                                     <FaListAlt style={styles.eventosIcon} />
                                     <Typography variant="h5" sx={styles.eventosCount}>
-                                      {selectedEvaluation.evaluacionesPolinizacion?.length || 0}
+                                      {selectedEvaluation?.evaluacionesPolinizacion?.length || 0}
                                     </Typography>
                                     <Chip 
                                       label="Eventos"
@@ -686,11 +759,11 @@ const FincaDetail = () => {
                                 </Button>
                               </Tooltip>
                             </Grid>
-                            <Grid item xs={4} sx={{ display: 'flex', flexDirection: 'column' }}>
+                            <Grid item xs={12} sm={4}>
                               <Typography variant="subtitle2" color="text.secondary">ID Evaluación</Typography>
-                              <Typography variant="body1" sx={{ fontWeight: 'medium' }}>EvalGen-{selectedEvaluation.id}</Typography>
+                              <Typography variant="body1" sx={{ fontWeight: 'medium' }}>EvalGen-{selectedEvaluation?.id || 'N/A'}</Typography>
                               
-                              {selectedEvaluation.semana && (
+                              {selectedEvaluation?.semana && (
                                 <>
                                   <Typography variant="subtitle2" color="text.secondary" sx={{ mt: 1 }}>Semana</Typography>
                                   <Typography variant="body1" sx={{ fontWeight: 'medium' }}>Semana {selectedEvaluation.semana}</Typography>
@@ -698,10 +771,10 @@ const FincaDetail = () => {
                               )}
                               
                               <Typography variant="subtitle2" color="text.secondary" sx={{ mt: 1 }}>Polinizador</Typography>
-                              <Typography variant="body1" sx={{ fontWeight: 'medium' }}>{selectedEvaluation.polinizador}</Typography>
+                              <Typography variant="body1" sx={{ fontWeight: 'medium' }}>{selectedEvaluation?.polinizador || 'No especificado'}</Typography>
                             </Grid>
-                            <Grid item xs={4}>
-                              <Box sx={{ display: 'flex', gap: 2 }}>
+                            <Grid item xs={12} sm={4}>
+                              <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2 }}>
                                 <Box sx={{ flex: 1 }}>
                                   {getSeccion(selectedEvaluation) && (
                                     <>
@@ -711,7 +784,7 @@ const FincaDetail = () => {
                                   )}
                                 </Box>
                                 <Box sx={{ flex: 1 }}>
-                                  {selectedEvaluation.lote && (
+                                  {selectedEvaluation?.lote && (
                                     <>
                                       <Typography variant="subtitle2" color="text.secondary">Lote</Typography>
                                       <Typography variant="body1" sx={{ fontWeight: 'medium' }}>{selectedEvaluation.lote}</Typography>
@@ -721,7 +794,7 @@ const FincaDetail = () => {
                               </Box>
                               
                               <Typography variant="subtitle2" color="text.secondary" sx={{ mt: 1 }}>Evaluador</Typography>
-                              <Typography variant="body1" sx={{ fontWeight: 'medium' }}>{selectedEvaluation.evaluador}</Typography>
+                              <Typography variant="body1" sx={{ fontWeight: 'medium' }}>{selectedEvaluation?.evaluador || 'No especificado'}</Typography>
                             </Grid>
                           </Grid>
                         </Box>
@@ -730,18 +803,36 @@ const FincaDetail = () => {
                   </Grid>
                   
                   <Grid item xs={12} md={6}>
-                    <Card style={{marginTop: '20px', marginLeft: '20px', marginRight: '20px', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 4px 8px rgba(0,0,0,0.1)', width: 'calc(100% - 40px)'}}>
-                      <CardContent style={{padding: '16px', backgroundColor: '#f8f9fa', borderBottom: '1px solid #eee', display: 'flex', alignItems: 'center'}}>
+                    <Card sx={{
+                      mt: { xs: 0, md: 2 },
+                      mx: { xs: 2, md: 3 },
+                      borderRadius: '8px',
+                      overflow: 'hidden',
+                      boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
+                      width: { xs: 'calc(100% - 16px)', md: 'calc(100% - 24px)' }
+                    }}>
+                      <CardContent sx={{
+                        p: 2,
+                        backgroundColor: '#f8f9fa',
+                        borderBottom: '1px solid #eee',
+                        display: 'flex',
+                        alignItems: 'center'
+                      }}>
                         <div style={{marginRight: '8px', color: '#2e7d32'}}>
                           <FaUserAlt />
                         </div>
-                        <Typography variant="h5" style={{margin: 0, fontWeight: 'bold', color: '#2e7d32'}}>
+                        <Typography variant="h5" sx={{
+                          m: 0,
+                          fontWeight: 'bold',
+                          color: '#2e7d32',
+                          fontSize: { xs: '1.25rem', md: '1.5rem' }
+                        }}>
                           Firma Del Operario
                         </Typography>
                       </CardContent>
-                      <CardContent style={{padding: '24px'}}>
+                      <CardContent sx={{ p: { xs: 2, md: 3 }}}>
                         <SignatureContainer>
-                          {(selectedEvaluation.firmapach || selectedEvaluation.firmapath) ? (
+                          {(selectedEvaluation?.firmapach || selectedEvaluation?.firmapath) ? (
                             <SignatureImage>
                               <img 
                                 src={selectedEvaluation.firmapach || selectedEvaluation.firmapath} 
@@ -761,67 +852,77 @@ const FincaDetail = () => {
                       </CardContent>
                     </Card>
                   </Grid>
-
-                  
-                  <Grid item xs={12} md={6} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                    <Grid container spacing={2}>
-                      <Grid item xs={12} md={6}>
-                      </Grid>
-                      <Grid item xs={12} md={6}>
-                      </Grid>
-                    </Grid>
-                    
-                    {/* Placeholder for spacing */}
-                    <Box sx={{ mt: 'auto' }}></Box>
-                  </Grid>
                 </Grid>
               </OperatorPhotoContainer>
               
-              {selectedEvaluation.evaluacionesPolinizacion?.length > 0 && (
-                <Card style={{marginTop: '20px', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 4px 8px rgba(0,0,0,0.1)'}}>
-                <CardContent style={{padding: '16px', backgroundColor: '#f8f9fa', borderBottom: '1px solid #eee', display: 'flex', alignItems: 'center'}}>
-                  <div style={{marginRight: '8px', color: '#2e7d32'}}>
-                    <FaChartBar />
-                  </div>
-                  <Typography variant="h5" style={{margin: 0, fontWeight: 'bold', color: '#2e7d32'}}>
-                    Métricas de Polinización
-                  </Typography>
-                </CardContent>
-                <CardContent style={{padding: '24px'}}>
-                  {(() => {
-                    const metricas = calcularMetricasPolinizacion(selectedEvaluation.evaluacionesPolinizacion);
-                    
-                    // Reorganized according to specified layout with max limits
-                    const progressData = [
-                      // Line 1: Antesis Dejadas, Post Antesis Dejadas
-                      { label: 'Antesis Dejadas', value: metricas.porcentajeAntesisDejadas, maxValue: 15, color: '#4caf50', row: 1, order: 1 },
-                      { label: 'Post Antesis Dejadas', value: metricas.porcentajePostAntesisDejadas, maxValue: 10, color: '#2196f3', row: 1, order: 2 },
-                      // Line 2: Espate, Aplicación, Marcación
-                      { label: 'Espate', value: metricas.porcentajeEspate, maxValue: 30, color: '#ff9800', row: 2, order: 1 },
-                      { label: 'Aplicación', value: metricas.porcentajeAplicacion, maxValue: 30, color: '#9c27b0', row: 2, order: 2 },
-                      { label: 'Marcación', value: metricas.porcentajeMarcacion, maxValue: 5, color: '#f44336', row: 2, order: 3 },
-                      // Line 3: Repaso 1, Repaso 2
-                      { label: 'Repaso 1', value: metricas.porcentajeRepaso1, maxValue: 5, color: '#3f51b5', row: 3, order: 1 },
-                      { label: 'Repaso 2', value: metricas.porcentajeRepaso2, maxValue: 5, color: '#009688', row: 3, order: 2 }
-                    ];
-                    
-                    return (
-                      <>
-                        {/* Métricas de Rendimiento */}
-                        <Typography variant="h5" style={{marginBottom: '40px', marginTop: '10px', fontWeight: 'bold', color: '#2e7d32', textAlign: 'center'}}>
-                          Rendimiento de Polinización
-                        </Typography>
+              {selectedEvaluation?.evaluacionesPolinizacion && selectedEvaluation.evaluacionesPolinizacion.length > 0 && (
+                <Card sx={{
+                  mt: 3,
+                  mx: { xs: 2, md: 0 },
+                  borderRadius: '8px',
+                  overflow: 'hidden',
+                  boxShadow: '0 4px 8px rgba(0,0,0,0.1)'
+                }}>
+                  <CardContent sx={{
+                    p: 2,
+                    backgroundColor: '#f8f9fa',
+                    borderBottom: '1px solid #eee',
+                    display: 'flex',
+                    alignItems: 'center'
+                  }}>
+                    <div style={{marginRight: '8px', color: '#2e7d32'}}>
+                      <FaChartBar />
+                    </div>
+                    <Typography variant="h5" sx={{
+                      m: 0,
+                      fontWeight: 'bold',
+                      color: '#2e7d32',
+                      fontSize: { xs: '1.25rem', md: '1.5rem' }
+                    }}>
+                      Métricas de Polinización
+                    </Typography>
+                  </CardContent>
+                  <CardContent sx={{ p: { xs: 2, md: 3 }}}>
+                    {(() => {
+                      try {
+                        const metricas = calcularMetricasPolinizacion(selectedEvaluation.evaluacionesPolinizacion);
                         
-                        <Grid container spacing={6} justifyContent="center">
-                          {/* Fila de tarjetas de métricas */}
-                          <Grid item xs={12}>
-                            <Grid container spacing={3} justifyContent="center">
+                        if (!metricas) {
+                          return (
+                            <Typography variant="body1" sx={{ textAlign: 'center', p: 2, color: '#666' }}>
+                              No se pudieron calcular las métricas de polinización
+                            </Typography>
+                          );
+                        }
+                        
+                        // Reorganized according to specified layout with max limits
+                        const progressData = [
+                          // Line 1: Antesis Dejadas, Post Antesis Dejadas
+                          { label: 'Antesis Dejadas', value: metricas.porcentajeAntesisDejadas, maxValue: 15, color: '#4caf50', row: 1, order: 1 },
+                          { label: 'Post Antesis Dejadas', value: metricas.porcentajePostAntesisDejadas, maxValue: 10, color: '#2196f3', row: 1, order: 2 },
+                          // Line 2: Espate, Aplicación, Marcación
+                          { label: 'Espate', value: metricas.porcentajeEspate, maxValue: 30, color: '#ff9800', row: 2, order: 1 },
+                          { label: 'Aplicación', value: metricas.porcentajeAplicacion, maxValue: 30, color: '#9c27b0', row: 2, order: 2 },
+                          { label: 'Marcación', value: metricas.porcentajeMarcacion, maxValue: 5, color: '#f44336', row: 2, order: 3 },
+                          // Line 3: Repaso 1, Repaso 2
+                          { label: 'Repaso 1', value: metricas.porcentajeRepaso1, maxValue: 5, color: '#3f51b5', row: 3, order: 1 },
+                          { label: 'Repaso 2', value: metricas.porcentajeRepaso2, maxValue: 5, color: '#009688', row: 3, order: 2 }
+                        ];
+                        
+                        return (
+                          <>
+                            {/* Métricas de Rendimiento */}
+                            <Typography variant="h5" sx={{ mb: { xs: 2, md: 4 }, mt: 1, fontWeight: 'bold', color: '#2e7d32', textAlign: 'center' }}>
+                              Rendimiento de Polinización
+                            </Typography>
+                            
+                            <Grid container spacing={3} justifyContent="center" sx={{ mb: { xs: 2, md: 4 } }}>
                               {/* Tarjeta de rendimiento total */}
                               <Grid item xs={12} sm={4} md={4} lg={3}>
                                 <Box 
                                   sx={{
                                     backgroundColor: '#f5f5f5',
-                                    padding: 2,
+                                    padding: { xs: 2, md: 3 },
                                     borderRadius: 2,
                                     textAlign: 'center',
                                     boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
@@ -832,7 +933,12 @@ const FincaDetail = () => {
                                     display: 'flex',
                                     flexDirection: 'column',
                                     alignItems: 'center',
-                                    justifyContent: 'center'
+                                    justifyContent: 'center',
+                                    transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+                                    '&:hover': {
+                                      transform: 'translateY(-5px)',
+                                      boxShadow: '0 6px 12px rgba(0,0,0,0.12)'
+                                    }
                                   }}
                                 >
                                   <div style={{
@@ -843,19 +949,20 @@ const FincaDetail = () => {
                                     height: '6px',
                                     background: 'linear-gradient(90deg, #4caf50, #2196f3, #ff9800, #f44336)'
                                   }}></div>
-                                  <Typography variant="h3" style={{fontWeight: 'bold', color: '#2e7d32', marginBottom: '8px', marginTop: '8px', textAlign: 'center'}}>
+                                  <Typography variant="h3" sx={{ fontWeight: 'bold', color: '#2e7d32', mb: 1, mt: 1, fontSize: { xs: '2rem', md: '2.5rem' } }}>
                                     {metricas.total.toFixed(2)}%
                                   </Typography>
                                   <Chip 
                                     label="Rendimiento Global"
                                     color="success"
                                     sx={{ 
-                                      fontSize: '0.85rem', 
-                                      fontWeight: 'bold', 
-                                      height: 28, 
-                                      background: 'linear-gradient(90deg, #4caf50, #2e7d32)',
-                                      margin: '0 auto'
-                                    }}
+                                       fontSize: '0.85rem', 
+                                       fontWeight: 'bold', 
+                                       height: 28, 
+                                       background: 'linear-gradient(90deg, #4caf50, #2e7d32)',
+                                       color: 'white',
+                                       margin: '0 auto'
+                                     }}
                                   />
                                 </Box>
                               </Grid>
@@ -866,7 +973,7 @@ const FincaDetail = () => {
                                   className="progress-box-animated"
                                   sx={{
                                     backgroundColor: '#f5f5f5',
-                                    padding: 2,
+                                    padding: { xs: 2, md: 3 },
                                     borderRadius: 2,
                                     textAlign: 'center',
                                     boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
@@ -890,7 +997,7 @@ const FincaDetail = () => {
                                     top: 0,
                                     left: 0,
                                     width: '100%',
-                                    height: '8px',
+                                    height: '6px',
                                     background: 'linear-gradient(90deg, #4caf50, #81c784)',
                                     boxShadow: '0 0 10px rgba(76, 175, 80, 0.5)'
                                   }}></div>
@@ -900,26 +1007,11 @@ const FincaDetail = () => {
                                     sx={{
                                       color: '#4caf50', 
                                       fontWeight: 'bold', 
-                                      marginBottom: '10px',
+                                      mb: 1,
+                                      fontSize: { xs: '2rem', md: '2.5rem' },
                                       position: 'relative',
                                       overflow: 'hidden',
-                                      display: 'inline-block',
-                                      '&::after': {
-                                        content: '""',
-                                        position: 'absolute',
-                                        top: 0,
-                                        left: 0,
-                                        width: '100%',
-                                        height: '100%',
-                                        background: 'linear-gradient(90deg, transparent, #ffffff80, transparent)',
-                                        animation: 'shimmer 3s infinite',
-                                        transform: 'translateX(-100%)'
-                                      },
-                                      '@keyframes shimmer': {
-                                        '100%': {
-                                          transform: 'translateX(100%)'
-                                        }
-                                      }
+                                      display: 'inline-block'
                                     }}
                                   >
                                     {metricas.proporcionalidadAntesis.toFixed(2)}%
@@ -927,18 +1019,13 @@ const FincaDetail = () => {
                                   <Chip 
                                     label="Proporcionalidad Antesis"
                                     sx={{ 
-                                      fontSize: '0.85rem', 
-                                      fontWeight: 'bold', 
-                                      height: 28, 
-                                      background: 'linear-gradient(90deg, #4caf50, #2e7d32)',
-                                      color: 'white',
-                                      margin: '0 auto',
-                                      transition: 'transform 0.3s ease, box-shadow 0.3s ease',
-                                      '&:hover': {
-                                        transform: 'scale(1.05)',
-                                        boxShadow: '0 2px 5px rgba(0,0,0,0.2)'
-                                      }
-                                    }}
+                                       fontSize: '0.85rem', 
+                                       fontWeight: 'bold', 
+                                       height: 28, 
+                                       background: 'linear-gradient(90deg, #4caf50, #2e7d32)',
+                                       color: 'white',
+                                       margin: '0 auto'
+                                     }}
                                   />
                                 </Box>
                               </Grid>
@@ -949,7 +1036,7 @@ const FincaDetail = () => {
                                   className="progress-box-animated"
                                   sx={{
                                     backgroundColor: '#f5f5f5',
-                                    padding: 2,
+                                    padding: { xs: 2, md: 3 },
                                     borderRadius: 2,
                                     textAlign: 'center',
                                     boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
@@ -973,7 +1060,7 @@ const FincaDetail = () => {
                                     top: 0,
                                     left: 0,
                                     width: '100%',
-                                    height: '8px',
+                                    height: '6px',
                                     background: 'linear-gradient(90deg, #2196f3, #64b5f6)',
                                     boxShadow: '0 0 10px rgba(33, 150, 243, 0.5)'
                                   }}></div>
@@ -983,23 +1070,11 @@ const FincaDetail = () => {
                                     sx={{
                                       color: '#2196f3', 
                                       fontWeight: 'bold', 
-                                      marginBottom: '8px',
-                                      marginTop: '8px',
-                                      textAlign: 'center',
+                                      mb: 1,
+                                      fontSize: { xs: '2rem', md: '2.5rem' },
                                       position: 'relative',
                                       overflow: 'hidden',
-                                      display: 'inline-block',
-                                      '&::after': {
-                                        content: '""',
-                                        position: 'absolute',
-                                        top: 0,
-                                        left: 0,
-                                        width: '100%',
-                                        height: '100%',
-                                        background: 'linear-gradient(90deg, transparent, #ffffff80, transparent)',
-                                        animation: 'shimmer 3s infinite',
-                                        transform: 'translateX(-100%)'
-                                      }
+                                      display: 'inline-block'
                                     }}
                                   >
                                     {metricas.proporcionalidadPostAntesis.toFixed(2)}%
@@ -1007,45 +1082,34 @@ const FincaDetail = () => {
                                   <Chip 
                                     label="Proporcionalidad Post-Antesis"
                                     sx={{ 
-                                      fontSize: '0.85rem', 
-                                      fontWeight: 'bold', 
-                                      height: 28, 
-                                      background: 'linear-gradient(90deg, #2196f3, #1565c0)',
-                                      color: 'white',
-                                      margin: '0 auto',
-                                      transition: 'transform 0.3s ease, box-shadow 0.3s ease',
-                                      '&:hover': {
-                                        transform: 'scale(1.05)',
-                                        boxShadow: '0 2px 5px rgba(0,0,0,0.2)'
-                                      }
-                                    }}
+                                       fontSize: '0.85rem', 
+                                       fontWeight: 'bold', 
+                                       height: 28, 
+                                       background: 'linear-gradient(90deg, #2196f3, #1565c0)',
+                                       color: 'white',
+                                       margin: '0 auto'
+                                     }}
                                   />
                                 </Box>
                               </Grid>
                             </Grid>
-                          </Grid>
-                          
-                          {/* Indicadores de rendimiento */}
-                          <Grid item xs={12} sx={{ mt: 6, mb: 2 }}>
-                            <Typography variant="h6" style={{marginBottom: '20px', fontWeight: '500', color: '#424242'}}>
+                            
+                            <Typography variant="h6" sx={{ mb: { xs: 1, sm: 2 }, mt: { xs: 2, md: 4 }, fontWeight: '500', color: '#424242', textAlign: 'center' }}>
                               Porcentajes por Indicador
                             </Typography>
                             
-                            <Grid container spacing={4} sx={{ margin: '0 -8px' }}>
-                              {/* First row - Antesis Dejadas, Post Antesis Dejadas */}
-                              <Grid item xs={12} sx={{ mb: 2 }}>
-                                <Grid container spacing={3} justifyContent="center">
-                                  {progressData.filter(item => item.row === 1).sort((a, b) => a.order - b.order).map((item) => {
-                                  const value = parseFloat(item.value || 0);
-                                  
-                                  return (
-                                    <Grid item xs={12} sm={6} md={6} key={item.label} sx={{ padding: '12px' }}>
+                            <Grid container spacing={{ xs: 1, sm: 1 }}>
+                              {progressData.filter(item => item.row === 1).sort((a, b) => a.order - b.order).map((item) => {
+                                const value = parseFloat(item.value || 0);
+                                
+                                return (
+                                  <Grid item xs={12} sm={6} md={6} key={item.label} sx={{ p: 1 }}>
                                     <Box sx={{
                                       backgroundColor: 'white',
-                                      padding: '22px',
+                                      p: { xs: 1.5, sm: 2, md: 3 },
                                       borderRadius: '12px',
                                       boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
-                                      margin: '0',
+                                      m: 0,
                                       border: 'none',
                                       display: 'flex',
                                       flexDirection: 'column',
@@ -1131,344 +1195,354 @@ const FincaDetail = () => {
                                     </Box>
                                   </Grid>
                                 );
-                                  })}
-                                </Grid>
-                              </Grid>
+                              })}
+                            </Grid>
                               
-                              {/* Second row - Espate, Aplicación, Marcación */}
-                              <Grid item xs={12} sx={{ mt: 4 }}>
-                                <Grid container spacing={0}>
-                                  {progressData.filter(item => item.row === 2).sort((a, b) => a.order - b.order).map((item) => {
-                                  const value = parseFloat(item.value || 0);
-                                  
-                                  return (
-                                      <Grid item xs={12} sm={6} md={6} key={item.label} sx={{ padding: '12px' }}>
-                                      <Box sx={{
-                                        backgroundColor: 'white',
-                                        padding: '22px',
-                                        borderRadius: '12px',
-                                        boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
-                                        margin: 0,
-                                        border: 'none',
-                                        display: 'flex',
-                                        flexDirection: 'column',
-                                        height: '100%',
-                                        transition: 'transform 0.3s ease, box-shadow 0.3s ease',
-                                        '&:hover': {
-                                          transform: 'translateY(-5px)',
-                                          boxShadow: '0 6px 12px rgba(0,0,0,0.12)'
-                                        }
-                                      }}>
-                                        <Box sx={{display: 'flex', flexDirection: 'column', marginBottom: 2}}>
-                                          <Box sx={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 2}}>
-                                            <Box sx={{display: 'flex', alignItems: 'center'}}>
-                                              <span style={{
-                                                display: 'inline-block',
-                                                width: '12px',
-                                                height: '12px',
-                                                backgroundColor: item.color,
-                                                borderRadius: '50%',
-                                                marginRight: '8px',
-                                                boxShadow: `0 0 0 3px ${item.color}20`,
-                                                transition: 'transform 0.3s ease',
-                                                animation: 'pulse 3s infinite'
-                                              }}></span>
-                                              <Typography variant="body1" sx={{color: '#424242', fontWeight: '500'}}>
-                                                {item.label}
-                                              </Typography>
-                                            </Box>
-                                            <Typography 
-                                              variant="body1" 
-                                              sx={{
-                                                fontWeight: 'bold', 
-                                                marginLeft: '16px',
-                                                color: item.color,
-                                                transition: 'transform 0.3s ease, color 0.3s ease',
-                                                '&:hover': {
-                                                  transform: 'scale(1.1)',
-                                                  color: `${item.color}dd`
-                                                }
-                                              }}
-                                            >
-                                              {value.toFixed(2)} %
+                            {/* Fila 2: Espate, Aplicación, Marcación */}
+                            <Grid container spacing={{ xs: 1, sm: 1 }}>
+                              {progressData.filter(item => item.row === 2).sort((a, b) => a.order - b.order).map((item) => {
+                                const value = parseFloat(item.value || 0);
+                                
+                                return (
+                                  <Grid item xs={12} sm={6} md={4} key={item.label} sx={{ p: 1 }}>
+                                    <Box sx={{
+                                      backgroundColor: 'white',
+                                      p: { xs: 1.5, sm: 2, md: 3 },
+                                      borderRadius: '12px',
+                                      boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+                                      m: 0,
+                                      border: 'none',
+                                      display: 'flex',
+                                      flexDirection: 'column',
+                                      height: '100%',
+                                      transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+                                      '&:hover': {
+                                        transform: 'translateY(-5px)',
+                                        boxShadow: '0 6px 12px rgba(0,0,0,0.12)'
+                                      }
+                                    }}>
+                                      <Box sx={{display: 'flex', flexDirection: 'column', marginBottom: 2}}>
+                                        <Box sx={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 2}}>
+                                          <Box sx={{display: 'flex', alignItems: 'center'}}>
+                                            <span style={{
+                                              display: 'inline-block',
+                                              width: '12px',
+                                              height: '12px',
+                                              backgroundColor: item.color,
+                                              borderRadius: '50%',
+                                              marginRight: '8px',
+                                              boxShadow: `0 0 0 3px ${item.color}20`,
+                                              transition: 'transform 0.3s ease',
+                                              animation: 'pulse 3s infinite'
+                                            }}></span>
+                                            <Typography variant="body1" sx={{color: '#424242', fontWeight: '500'}}>
+                                              {item.label}
                                             </Typography>
                                           </Box>
+                                          <Typography 
+                                            variant="body1" 
+                                            sx={{
+                                              fontWeight: 'bold', 
+                                              marginLeft: '16px',
+                                              color: item.color,
+                                              transition: 'transform 0.3s ease, color 0.3s ease',
+                                              '&:hover': {
+                                                transform: 'scale(1.1)',
+                                                color: `${item.color}dd`
+                                              }
+                                            }}
+                                          >
+                                            {value.toFixed(2)} %
+                                          </Typography>
                                         </Box>
-                                        <LinearProgress 
-                                          variant="determinate" 
-                                          value={Math.min((value / item.maxValue) * 100, 100)} 
-                                          className="progress-bar-animated"
-                                          sx={{
-                                            height: 8, 
-                                            borderRadius: 4,
-                                            backgroundColor: '#f0f0f0',
-                                            '& .MuiLinearProgress-bar': {
-                                              backgroundColor: item.color,
-                                              backgroundImage: `linear-gradient(90deg, ${item.color}aa, ${item.color})`,
-                                              animation: 'none',
-                                              width: '0%',
-                                              boxShadow: `0 0 10px ${item.color}80`,
-                                              transition: 'width 2.5s ease-out'
-                                            },
-                                            '&.animate .MuiLinearProgress-bar': {
-                                              width: `${Math.min((value / item.maxValue) * 100, 100)}%`
-                                            }
-                                          }}
-                                        />
                                       </Box>
-                                    </Grid>
-                                  );
-                                  })}
-                                </Grid>
-                              </Grid>
+                                      <LinearProgress 
+                                        variant="determinate" 
+                                        value={Math.min((value / item.maxValue) * 100, 100)} 
+                                        className="progress-bar-animated"
+                                        sx={{
+                                          height: 8, 
+                                          borderRadius: 4,
+                                          backgroundColor: '#f0f0f0',
+                                          '& .MuiLinearProgress-bar': {
+                                            backgroundColor: item.color,
+                                            backgroundImage: `linear-gradient(90deg, ${item.color}aa, ${item.color})`,
+                                            animation: 'slideIn 4s ease-out',
+                                            boxShadow: `0 0 10px ${item.color}80`
+                                          }
+                                        }}
+                                      />
+                                    </Box>
+                                  </Grid>
+                                );
+                              })}
+                            </Grid>
                               
-                              {/* Third row - Repaso 1, Repaso 2 */}
-                              <Grid item xs={12} sx={{ mt: 4 }}>
-                                <Grid container spacing={0}>
-                                  {progressData.filter(item => item.row === 3).sort((a, b) => a.order - b.order).map((item) => {
-                                  const value = parseFloat(item.value || 0);
-                                  
-                                  return (
-                                      <Grid item xs={12} sm={6} md={6} key={item.label} sx={{ padding: '12px' }}>
-                                      <Box sx={{
-                                        backgroundColor: 'white',
-                                        padding: '22px',
-                                        borderRadius: '12px',
-                                        boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
-                                        margin: 0,
-                                        border: 'none',
-                                        display: 'flex',
-                                        flexDirection: 'column',
-                                        height: '100%',
-                                        transition: 'transform 0.3s ease, box-shadow 0.3s ease',
-                                        '&:hover': {
-                                          transform: 'translateY(-5px)',
-                                          boxShadow: '0 6px 12px rgba(0,0,0,0.12)'
-                                        }
-                                      }}>
-                                        <Box sx={{display: 'flex', flexDirection: 'column', marginBottom: 2}}>
-                                          <Box sx={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 2}}>
-                                            <Box sx={{display: 'flex', alignItems: 'center'}}>
-                                              <span style={{
-                                                display: 'inline-block',
-                                                width: '12px',
-                                                height: '12px',
-                                                backgroundColor: item.color,
-                                                borderRadius: '50%',
-                                                marginRight: '8px',
-                                                boxShadow: `0 0 0 3px ${item.color}20`,
-                                                transition: 'transform 0.3s ease',
-                                                animation: 'pulse 3s infinite'
-                                              }}></span>
-                                              <Typography variant="body1" sx={{color: '#424242', fontWeight: '500'}}>
-                                                {item.label}
-                                              </Typography>
-                                            </Box>
-                                            <Typography 
-                                              variant="body1" 
-                                              sx={{
-                                                fontWeight: 'bold', 
-                                                marginLeft: '16px',
-                                                color: item.color,
-                                                transition: 'transform 0.3s ease, color 0.3s ease',
-                                                '&:hover': {
-                                                  transform: 'scale(1.1)',
-                                                  color: `${item.color}dd`
-                                                }
-                                              }}
-                                            >
-                                              {value.toFixed(2)} %
+                            {/* Fila 3: Repaso 1, Repaso 2 */}
+                            <Grid container spacing={{ xs: 1, sm: 1 }}>
+                              {progressData.filter(item => item.row === 3).sort((a, b) => a.order - b.order).map((item) => {
+                                const value = parseFloat(item.value || 0);
+                                
+                                return (
+                                  <Grid item xs={12} sm={6} md={6} key={item.label} sx={{ p: 1 }}>
+                                    <Box sx={{
+                                      backgroundColor: 'white',
+                                      p: { xs: 1.5, sm: 2, md: 3 },
+                                      borderRadius: '12px',
+                                      boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+                                      m: 0,
+                                      border: 'none',
+                                      display: 'flex',
+                                      flexDirection: 'column',
+                                      height: '100%',
+                                      transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+                                      '&:hover': {
+                                        transform: 'translateY(-5px)',
+                                        boxShadow: '0 6px 12px rgba(0,0,0,0.12)'
+                                      }
+                                    }}>
+                                      <Box sx={{display: 'flex', flexDirection: 'column', marginBottom: 2}}>
+                                        <Box sx={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 2}}>
+                                          <Box sx={{display: 'flex', alignItems: 'center'}}>
+                                            <span style={{
+                                              display: 'inline-block',
+                                              width: '12px',
+                                              height: '12px',
+                                              backgroundColor: item.color,
+                                              borderRadius: '50%',
+                                              marginRight: '8px',
+                                              boxShadow: `0 0 0 3px ${item.color}20`,
+                                              transition: 'transform 0.3s ease',
+                                              animation: 'pulse 3s infinite'
+                                            }}></span>
+                                            <Typography variant="body1" sx={{color: '#424242', fontWeight: '500'}}>
+                                              {item.label}
                                             </Typography>
                                           </Box>
+                                          <Typography 
+                                            variant="body1" 
+                                            sx={{
+                                              fontWeight: 'bold', 
+                                              marginLeft: '16px',
+                                              color: item.color,
+                                              transition: 'transform 0.3s ease, color 0.3s ease',
+                                              '&:hover': {
+                                                transform: 'scale(1.1)',
+                                                color: `${item.color}dd`
+                                              }
+                                            }}
+                                          >
+                                            {value.toFixed(2)} %
+                                          </Typography>
                                         </Box>
-                                        <LinearProgress 
-                                          variant="determinate" 
-                                          value={Math.min((value / item.maxValue) * 100, 100)} 
-                                          className="progress-bar-animated"
-                                          sx={{
-                                            height: 8, 
-                                            borderRadius: 4,
-                                            backgroundColor: '#f0f0f0',
-                                            '& .MuiLinearProgress-bar': {
-                                              backgroundColor: item.color,
-                                              backgroundImage: `linear-gradient(90deg, ${item.color}aa, ${item.color})`,
-                                              animation: 'none',
-                                              width: '0%',
-                                              boxShadow: `0 0 10px ${item.color}80`,
-                                              transition: 'width 2.5s ease-out'
-                                            },
-                                            '&.animate .MuiLinearProgress-bar': {
-                                              width: `${Math.min((value / item.maxValue) * 100, 100)}%`
-                                            }
-                                          }}
-                                        />
                                       </Box>
-                                    </Grid>
-                                  );
-                                  })}
-                                </Grid>
+                                      <LinearProgress 
+                                        variant="determinate" 
+                                        value={Math.min((value / item.maxValue) * 100, 100)} 
+                                        className="progress-bar-animated"
+                                        sx={{
+                                          height: 8, 
+                                          borderRadius: 4,
+                                          backgroundColor: '#f0f0f0',
+                                          '& .MuiLinearProgress-bar': {
+                                            backgroundColor: item.color,
+                                            backgroundImage: `linear-gradient(90deg, ${item.color}aa, ${item.color})`,
+                                            animation: 'slideIn 4s ease-out',
+                                            boxShadow: `0 0 10px ${item.color}80`
+                                          }
+                                        }}
+                                      />
+                                    </Box>
+                                  </Grid>
+                                );
+                              })}
+                            </Grid>
+                              
+                            {/* Sección de Valores Totales */}
+                            <Grid item xs={12} sx={{ mt: { xs: 2, md: 4 } }}>
+                              <Typography variant="h6" sx={{ mb: { xs: 1, sm: 2 }, fontWeight: 'bold', color: '#424242', textAlign: 'center' }}>
+                                Valores Totales
+                              </Typography>
+                              
+                              {/* LÍNEA 1: Total Eventos - Suma Inflorescencia - Eventos Repaso 1 - Eventos Repaso 2 */}
+                              <Grid container spacing={2} sx={{ mb: { xs: 1, sm: 2 } }}>
+                                {[
+                                  { label: 'Total Eventos', value: metricas.sumaEventos, color: '#4caf50' },
+                                  { label: 'Inflorescencia', value: metricas.sumaInflorescencia, color: '#9c27b0' },
+                                  { label: 'Eventos Repaso 1', value: metricas.EventosRepaso1, color: '#3f51b5' },
+                                  { label: 'Eventos Repaso 2', value: metricas.EventosRepaso2, color: '#009688' }
+                                ].map((item) => (
+                                  <Grid item xs={6} sm={3} md={3} key={item.label}>
+                                    <Box sx={{
+                                      display: 'flex',
+                                      flexDirection: 'column',
+                                      alignItems: 'center',
+                                      backgroundColor: 'white',
+                                      padding: { xs: '6px', sm: '8px', md: '12px' },
+                                      borderRadius: '8px',
+                                      boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                                      position: 'relative',
+                                      overflow: 'hidden',
+                                      transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+                                      '&:hover': {
+                                        transform: 'translateY(-5px)',
+                                        boxShadow: '0 4px 8px rgba(0,0,0,0.15)'
+                                      }
+                                    }}>
+                                      <div style={{
+                                        position: 'absolute',
+                                        top: 0,
+                                        left: 0,
+                                        width: '100%',
+                                        height: '4px',
+                                        backgroundColor: item.color
+                                      }}></div>
+                                      
+                                      <Typography variant="h4" sx={{
+                                        fontWeight: 'bold',
+                                        color: item.color,
+                                        mb: 1,
+                                        fontSize: { xs: '1.25rem', sm: '1.5rem', md: '2rem' }
+                                      }}>
+                                        {item.value}
+                                      </Typography>
+                                      
+                                      <Typography variant="body2" sx={{
+                                        color: '#666',
+                                        fontSize: { xs: '0.7rem', sm: '0.75rem', md: '0.9rem' },
+                                        textAlign: 'center'
+                                      }}>
+                                        {item.label}
+                                      </Typography>
+                                    </Box>
+                                  </Grid>
+                                ))}
+                              </Grid>
+                              
+                              {/* LÍNEA 2: Suma Antesis - Suma Post Antesis - Suma Antesis Dejadas - Suma Post Antesis Dejadas */}
+                              <Grid container spacing={2} sx={{ mb: { xs: 1, sm: 2 } }}>
+                                {[
+                                  { label: 'Antesis', value: metricas.sumaAntesis, color: '#2196f3' },
+                                  { label: 'Post Antesis', value: metricas.sumaPostAntesis, color: '#3f51b5' },
+                                  { label: 'Antesis Dejadas', value: metricas.sumaAntesisDejadas, color: '#009688' },
+                                  { label: 'Post Antesis Dejadas', value: metricas.sumaPostAntesisDejadas, color: '#ff9800' }
+                                ].map((item) => (
+                                  <Grid item xs={6} sm={3} md={3} key={item.label}>
+                                    <Box sx={{
+                                      display: 'flex',
+                                      flexDirection: 'column',
+                                      alignItems: 'center',
+                                      backgroundColor: 'white',
+                                      padding: { xs: '6px', sm: '8px', md: '12px' },
+                                      borderRadius: '8px',
+                                      boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                                      position: 'relative',
+                                      overflow: 'hidden',
+                                      transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+                                      '&:hover': {
+                                        transform: 'translateY(-5px)',
+                                        boxShadow: '0 4px 8px rgba(0,0,0,0.15)'
+                                      }
+                                    }}>
+                                      <div style={{
+                                        position: 'absolute',
+                                        top: 0,
+                                        left: 0,
+                                        width: '100%',
+                                        height: '4px',
+                                        backgroundColor: item.color
+                                      }}></div>
+                                      
+                                      <Typography variant="h4" sx={{
+                                        fontWeight: 'bold',
+                                        color: item.color,
+                                        mb: 1,
+                                        fontSize: { xs: '1.25rem', sm: '1.5rem', md: '2rem' }
+                                      }}>
+                                        {item.value}
+                                      </Typography>
+                                      
+                                      <Typography variant="body2" sx={{
+                                        color: '#666',
+                                        fontSize: { xs: '0.7rem', sm: '0.75rem', md: '0.9rem' },
+                                        textAlign: 'center'
+                                      }}>
+                                        {item.label}
+                                      </Typography>
+                                    </Box>
+                                  </Grid>
+                                ))}
+                              </Grid>
+                              
+                              {/* LÍNEA 3: Suma Aplicación - Suma Marcación - Suma Espate - Repaso 1 - Repaso 2 */}
+                              <Grid container spacing={2}>
+                                {[
+                                  { label: 'Aplicación', value: metricas.sumaAplicacion, color: '#f44336' },
+                                  { label: 'Marcación', value: metricas.sumaMarcacion, color: '#795548' },
+                                  { label: 'Espate', value: metricas.sumaEspate, color: '#607d8b' },
+                                  { label: 'Repaso 1', value: metricas.sumaRepaso1, color: '#3f51b5' },
+                                  { label: 'Repaso 2', value: metricas.sumaRepaso2, color: '#009688' }
+                                ].map((item) => (
+                                  <Grid item xs={6} sm={4} md={2.4} key={item.label}>
+                                    <Box sx={{
+                                      display: 'flex',
+                                      flexDirection: 'column',
+                                      alignItems: 'center',
+                                      backgroundColor: 'white',
+                                      padding: { xs: '6px', sm: '8px', md: '12px' },
+                                      borderRadius: '8px',
+                                      boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                                      position: 'relative',
+                                      overflow: 'hidden',
+                                      transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+                                      '&:hover': {
+                                        transform: 'translateY(-5px)',
+                                        boxShadow: '0 4px 8px rgba(0,0,0,0.15)'
+                                      }
+                                    }}>
+                                      <div style={{
+                                        position: 'absolute',
+                                        top: 0,
+                                        left: 0,
+                                        width: '100%',
+                                        height: '4px',
+                                        backgroundColor: item.color
+                                      }}></div>
+                                      
+                                      <Typography variant="h4" sx={{
+                                        fontWeight: 'bold',
+                                        color: item.color,
+                                        mb: 1,
+                                        fontSize: { xs: '1.25rem', sm: '1.5rem', md: '2rem' }
+                                      }}>
+                                        {item.value}
+                                      </Typography>
+                                      
+                                      <Typography variant="body2" sx={{
+                                        color: '#666',
+                                        fontSize: { xs: '0.7rem', sm: '0.75rem', md: '0.9rem' },
+                                        textAlign: 'center'
+                                      }}>
+                                        {item.label}
+                                      </Typography>
+                                    </Box>
+                                  </Grid>
+                                ))}
                               </Grid>
                             </Grid>
-                          </Grid>
-                          
-                          {/* Sumas de métricas */}
-                          <Grid item xs={12} sx={styles.metricsContainer}>
-                            <Typography variant="h6" style={styles.sectionTitle}>
-                              Valores Totales
-                            </Typography>
-                            
-                            {/* LÍNEA 1: Total Eventos - Suma Inflorescencia - Eventos Repaso 1 - Eventos Repaso 2 */}
-                            <Grid container spacing={2} sx={styles.metricsRow}>
-                              {[
-                                { label: 'Total Eventos', value: metricas.sumaEventos, color: '#4caf50' },
-                                { label: 'Inflorescencia', value: metricas.sumaInflorescencia, color: '#9c27b0' },
-                                { label: 'Eventos Repaso 1', value: metricas.EventosRepaso1, color: '#3f51b5' },
-                                { label: 'Eventos Repaso 2', value: metricas.EventosRepaso2, color: '#009688' }
-                              ].map((item) => (
-                                <Grid item xs={6} sm={3} md={3} key={item.label} sx={styles.metricsItemContainer}>
-                                  <Box
-                                    sx={styles.valoresTotalesCard}
-                                  >
-                                    <div style={{
-                                      ...styles.valoresTotalesColorBar,
-                                      backgroundColor: item.color
-                                    }}></div>
-                                    
-                                    <Typography variant="h4" style={{
-                                      ...styles.valoresTotalesValue,
-                                      color: item.color
-                                    }}>
-                                      {item.value}
-                                    </Typography>
-                                    
-                                    <Typography variant="body2" style={{
-                                      ...styles.valoresTotalesLabel,
-                                      color: item.color
-                                    }}>
-                                      {item.label}
-                                    </Typography>
-                                    
-
-                                  </Box>
-                                </Grid>
-                              ))}
-                            </Grid>
-                            
-                            {/* LÍNEA 2: Suma Antesis - Suma Post Antesis - Suma Antesis Dejadas - Suma Post Antesis Dejadas */}
-                            <Grid container spacing={2} sx={styles.metricsRow}>
-                              {[
-                                { label: 'Antesis', value: metricas.sumaAntesis, color: '#2196f3' },
-                                { label: 'Post Antesis', value: metricas.sumaPostAntesis, color: '#3f51b5' },
-                                { label: 'Antesis Dejadas', value: metricas.sumaAntesisDejadas, color: '#009688' },
-                                { label: 'Post Antesis Dejadas', value: metricas.sumaPostAntesisDejadas, color: '#ff9800' }
-                              ].map((item) => (
-                                <Grid item xs={6} sm={3} md={3} key={item.label} sx={styles.metricsItemContainer}>
-                                  <Box
-                                    sx={styles.valoresTotalesCard}
-                                  >
-                                    <div style={{
-                                      ...styles.valoresTotalesColorBar,
-                                      backgroundColor: item.color
-                                    }}></div>
-                                    
-                                    <Typography variant="h4" style={{
-                                      ...styles.valoresTotalesValue,
-                                      color: item.color
-                                    }}>
-                                      {item.value}
-                                    </Typography>
-                                    
-                                    <Typography variant="body2" style={{
-                                      ...styles.valoresTotalesLabel,
-                                      color: item.color
-                                    }}>
-                                      {item.label}
-                                    </Typography>
-                                    
-
-                                  </Box>
-                                </Grid>
-                              ))}
-                            </Grid>
-                            
-                            {/* LÍNEA 3: Suma Aplicación - Suma Marcación - Suma Espate */}
-                            <Grid container spacing={2} sx={styles.metricsRow}>
-                              {[
-                                { label: 'Aplicación', value: metricas.sumaAplicacion, color: '#f44336' },
-                                { label: 'Marcación', value: metricas.sumaMarcacion, color: '#795548' },
-                                { label: 'Espate', value: metricas.sumaEspate, color: '#607d8b' }
-                              ].map((item) => (
-                                <Grid item xs={6} sm={4} md={4} key={item.label} sx={styles.metricsItemContainer}>
-                                  <Box
-                                    sx={styles.valoresTotalesCard}
-                                  >
-                                    <div style={{
-                                      ...styles.valoresTotalesColorBar,
-                                      backgroundColor: item.color
-                                    }}></div>
-                                    
-                                    <Typography variant="h4" style={{
-                                      ...styles.valoresTotalesValue,
-                                      color: item.color
-                                    }}>
-                                      {item.value}
-                                    </Typography>
-                                    
-                                    <Typography variant="body2" style={{
-                                      ...styles.valoresTotalesLabel,
-                                      color: item.color
-                                    }}>
-                                      {item.label}
-                                    </Typography>
-                                    
-
-                                  </Box>
-                                </Grid>
-                              ))}
-                            </Grid>
-                            
-                            {/* LÍNEA 4: Suma Repaso 1 - Suma Repaso 2 */}
-                            <Grid container spacing={2} sx={styles.metricsRow}>
-                              {[
-                                { label: 'Repaso 1', value: metricas.sumaRepaso1, color: '#8bc34a' },
-                                { label: 'Repaso 2', value: metricas.sumaRepaso2, color: '#ffc107' }
-                              ].map((item) => (
-                                <Grid item xs={6} sm={6} md={6} key={item.label} sx={styles.metricsItemContainer}>
-                                  <Box
-                                    sx={styles.valoresTotalesCard}
-                                  >
-                                    <div style={{
-                                      ...styles.valoresTotalesColorBar,
-                                      backgroundColor: item.color
-                                    }}></div>
-                                    
-                                    <Typography variant="h4" style={{
-                                      ...styles.valoresTotalesValue,
-                                      color: item.color
-                                    }}>
-                                      {item.value}
-                                    </Typography>
-                                    
-                                    <Typography variant="body2" style={{
-                                      ...styles.valoresTotalesLabel,
-                                      color: item.color
-                                    }}>
-                                      {item.label}
-                                    </Typography>
-                                    
-
-                                  </Box>
-                                </Grid>
-                              ))}
-                            </Grid>
-                          </Grid>
-
-                        </Grid>
-                      </>
-                    );
-                  })()}
-                </CardContent>
-              </Card>
+                          </>
+                        );
+                      } catch (error) {
+                        console.error('Error al calcular métricas de polinización:', error);
+                        return (
+                          <Typography variant="body1" sx={{ textAlign: 'center', p: 2, color: '#666' }}>
+                            Error al calcular métricas de polinización
+                          </Typography>
+                        );
+                      }
+                    })()}
+                  </CardContent>
+                </Card>
               )}
             </>
           ) : (
@@ -1486,107 +1560,177 @@ const FincaDetail = () => {
           variant="contained" 
           onClick={exportToExcel}
           startIcon={<FaFileExcel />}
+          disabled={!selectedEvaluation}
         >
           Exportar a Excel
         </Button>
       </Box>
 
-      {/* Modal para mostrar la tabla de eventos */}
-      <Modal
-        open={modalAbierto}
-        onClose={() => setModalAbierto(false)}
-        aria-labelledby="modal-eventos-titulo"
-        aria-describedby="modal-eventos-descripcion"
-      >
-        <Box sx={styles.modalEventosContainer}>
-          <Box sx={styles.eventosModalHeader}>
-            <Typography variant="h6" sx={styles.eventosModalTitle}>
-              Eventos de Evaluación
-            </Typography>
-            <Button
-              onClick={() => setModalAbierto(false)}
-              variant="text"
-              size="small"
-              sx={styles.eventosModalCloseButton}
-            >
-              <FaTimes style={styles.closeIcon} />
-            </Button>
-          </Box>
-          
-          <Box sx={styles.eventosModalContent}>
-            <Box sx={styles.eventosModalTableContainer}>
-              <table style={styles.eventosTable}>
-                <thead>
-                  <tr style={styles.eventosTableHeaderRow}>
-                    <th style={styles.eventosTableHeaderCell}>Fecha</th>
-                    <th style={styles.eventosTableHeaderCell}>Hora</th>
-                    <th style={styles.eventosTableHeaderCell}>Semana</th>
-                    <th style={styles.eventosTableHeaderCell}>Ubicación</th>
-                    <th style={styles.eventosTableHeaderCellWide}>Lote</th>
-                    <th style={styles.eventosTableHeaderCell}>Sección</th>
-                    <th style={styles.eventosTableHeaderCell}>Palma</th>
-                    <th style={styles.eventosTableHeaderCell}>Inflorescencia</th>
-                    <th style={styles.eventosTableHeaderCell}>Antesis</th>
-                    <th style={styles.eventosTableHeaderCell}>Antesis Dejadas</th>
-                    <th style={styles.eventosTableHeaderCell}>Post Antesis</th>
-                    <th style={styles.eventosTableHeaderCell}>Post Antesis Dejadas</th>
-                    <th style={styles.eventosTableHeaderCell}>Espate</th>
-                    <th style={styles.eventosTableHeaderCell}>Aplicación</th>
-                    <th style={styles.eventosTableHeaderCell}>Marcación</th>
-                    <th style={styles.eventosTableHeaderCell}>Repaso 1</th>
-                    <th style={styles.eventosTableHeaderCell}>Repaso 2</th>
-                    <th style={styles.eventosTableHeaderCell}>Observaciones</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {selectedEvaluation && selectedEvaluation.evaluacionesPolinizacion && selectedEvaluation.evaluacionesPolinizacion.map((evaluacion, index) => (
-                    <tr key={index} style={{ ...styles.eventosTableRowAlternate, backgroundColor: index % 2 === 0 ? 'white' : '#f8f8f8' }}>
-                      <td style={styles.eventosTableDataCell}>{selectedEvaluation.fecha}</td>
-                      <td style={styles.eventosTableDataCell}>{selectedEvaluation.hora}</td>
-                      <td style={styles.eventosTableDataCell}>{selectedEvaluation.semana}</td>
-                      <td style={styles.eventosTableDataCell}>{evaluacion.ubicacion || '-'}</td>
-                      <td style={styles.eventosTableDataCellWide}>{evaluacion.lote || selectedEvaluation.lote || '-'}</td>
-                      <td style={styles.eventosTableDataCell}>{evaluacion.seccion || '-'}</td>
-                      <td style={styles.eventosTableDataCell}>{evaluacion.palma || '-'}</td>
-                      <td style={{ ...styles.eventosTableDataCell, color: evaluacion.inflorescencia > 0 ? '#2e7d32' : 'inherit' }}>{evaluacion.inflorescencia === 0 ? '0' : evaluacion.inflorescencia || ''}</td>
-                      <td style={{ ...styles.eventosTableDataCell, color: evaluacion.antesis > 0 ? '#2e7d32' : 'inherit' }}>{evaluacion.antesis === 0 ? '0' : evaluacion.antesis || ''}</td>
-                      <td style={{ ...styles.eventosTableDataCell, color: evaluacion.antesisDejadas > 0 ? '#2e7d32' : 'inherit' }}>{evaluacion.antesisDejadas === 0 ? '0' : evaluacion.antesisDejadas || ''}</td>
-                      <td style={{ ...styles.eventosTableDataCell, color: evaluacion.postantesis > 0 ? '#2e7d32' : 'inherit' }}>{evaluacion.postantesis === 0 ? '0' : evaluacion.postantesis || ''}</td>
-                      <td style={{ ...styles.eventosTableDataCell, color: evaluacion.postantesisDejadas > 0 ? '#2e7d32' : 'inherit' }}>{evaluacion.postantesisDejadas === 0 ? '0' : evaluacion.postantesisDejadas || ''}</td>
-                      <td style={{ ...styles.eventosTableDataCell, color: evaluacion.espate > 0 ? '#2e7d32' : 'inherit' }}>{evaluacion.espate === 0 ? '0' : evaluacion.espate || ''}</td>
-                      <td style={{ ...styles.eventosTableDataCell, color: evaluacion.aplicacion > 0 ? '#2e7d32' : 'inherit' }}>{evaluacion.aplicacion === 0 ? '0' : evaluacion.aplicacion || ''}</td>
-                      <td style={{ ...styles.eventosTableDataCell, color: evaluacion.marcacion > 0 ? '#2e7d32' : 'inherit' }}>{evaluacion.marcacion === 0 ? '0' : evaluacion.marcacion || ''}</td>
-                      <td style={{ ...styles.eventosTableDataCell, color: evaluacion.repaso1 > 0 ? '#2e7d32' : 'inherit' }}>{evaluacion.repaso1 === 0 ? '0' : evaluacion.repaso1 || ''}</td>
-                      <td style={{ ...styles.eventosTableDataCell, color: evaluacion.repaso2 > 0 ? '#2e7d32' : 'inherit' }}>{evaluacion.repaso2 === 0 ? '0' : evaluacion.repaso2 || ''}</td>
-                      <td style={styles.eventosTableDataCellLeft}>{evaluacion.observaciones || '-'}</td>
-                    </tr>
-                  ))}
-                  {(!selectedEvaluation || !selectedEvaluation.evaluacionesPolinizacion || selectedEvaluation.evaluacionesPolinizacion.length === 0) && (
-                    <tr>
-                      <td colSpan="18" style={styles.eventosTableNoDataCell}>
-                        No hay datos disponibles
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </Box>
-          </Box>
-          
-          {/* Add export button */}
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end', padding: '16px' }}>
-            <Button 
-              variant="contained" 
-              onClick={exportToExcel}
-              startIcon={<FaFileExcel />}
-              sx={styles.actionButton}
-            >
-              Exportar a Excel
-            </Button>
-          </Box>
-          
-        </Box>
-      </Modal>
+      {/* Envolver el modal con el error boundary */}
+      <ErrorBoundary>
+        {/* Modal para mostrar los eventos de polinización */}
+        {mostrarModal && (
+          <Modal 
+            open={true}
+            onClose={cerrarModal}
+            aria-labelledby="modal-eventos-polinizacion"
+            aria-describedby="modal-eventos-polinizacion-descripcion"
+          >
+            <div style={{
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              width: '90%',
+              maxWidth: '1200px',
+              maxHeight: '90vh',
+              backgroundColor: 'white',
+              border: '1px solid #ddd',
+              boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+              borderRadius: '8px',
+              overflow: 'hidden',
+              display: 'flex', 
+              flexDirection: 'column'
+            }}>
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                padding: '16px 24px',
+                backgroundColor: '#f5f5f5',
+                borderBottom: '1px solid #ddd'
+              }}>
+                <Typography 
+                  variant="h6" 
+                  style={{
+                    fontWeight: 'bold',
+                    fontSize: '1.25rem'
+                  }}
+                >
+                  Eventos de Polinización {selectedEvaluation?.polinizador ? `- ${selectedEvaluation.polinizador}` : ''}
+                </Typography>
+                
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <Button
+                    variant="outlined"
+                    color="primary"
+                    startIcon={<FaFileExcel />}
+                    onClick={exportToExcel}
+                    size="small"
+                    style={{
+                      display: window.innerWidth < 600 ? 'none' : 'flex'
+                    }}
+                  >
+                    Exportar Excel
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    color="primary"
+                    onClick={exportToExcel}
+                    size="small"
+                    style={{
+                      minWidth: '36px',
+                      display: window.innerWidth < 600 ? 'flex' : 'none'
+                    }}
+                  >
+                    <FaFileExcel />
+                  </Button>
+                  <Button
+                    onClick={cerrarModal}
+                    style={{
+                      minWidth: '36px',
+                      padding: '4px 8px'
+                    }}
+                  >
+                    <FaTimes />
+                  </Button>
+                </div>
+              </div>
+              
+              <div style={{
+                overflowX: 'auto',
+                overflowY: 'auto',
+                flex: 1,
+                padding: '16px'
+              }}>
+                <div style={{
+                  minWidth: '1000px',
+                  backgroundColor: 'white',
+                  borderRadius: '8px',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                }}>
+                  <table style={{
+                    width: '100%',
+                    borderCollapse: 'collapse',
+                    fontSize: '0.875rem'
+                  }}>
+                    <thead>
+                      <tr style={{
+                        backgroundColor: '#f8f9fa',
+                        borderBottom: '2px solid #4caf50'
+                      }}>
+                        <th style={{ padding: '12px 8px', textAlign: 'center', position: 'sticky', top: 0, backgroundColor: '#f8f9fa', zIndex: 2 }}>Fecha</th>
+                        <th style={{ padding: '12px 8px', textAlign: 'center', position: 'sticky', top: 0, backgroundColor: '#f8f9fa', zIndex: 2 }}>Hora</th>
+                        <th style={{ padding: '12px 8px', textAlign: 'center', position: 'sticky', top: 0, backgroundColor: '#f8f9fa', zIndex: 2 }}>Semana</th>
+                        <th style={{ padding: '12px 8px', textAlign: 'center', position: 'sticky', top: 0, backgroundColor: '#f8f9fa', zIndex: 2 }}>Ubicación</th>
+                        <th style={{ padding: '12px 8px', textAlign: 'center', position: 'sticky', top: 0, backgroundColor: '#f8f9fa', zIndex: 2 }}>Lote</th>
+                        <th style={{ padding: '12px 8px', textAlign: 'center', position: 'sticky', top: 0, backgroundColor: '#f8f9fa', zIndex: 2 }}>Sección</th>
+                        <th style={{ padding: '12px 8px', textAlign: 'center', position: 'sticky', top: 0, backgroundColor: '#f8f9fa', zIndex: 2 }}>Palma</th>
+                        <th style={{ padding: '12px 8px', textAlign: 'center', position: 'sticky', top: 0, backgroundColor: '#f8f9fa', zIndex: 2 }}>Inflorescencia</th>
+                        <th style={{ padding: '12px 8px', textAlign: 'center', position: 'sticky', top: 0, backgroundColor: '#f8f9fa', zIndex: 2 }}>Antesis</th>
+                        <th style={{ padding: '12px 8px', textAlign: 'center', position: 'sticky', top: 0, backgroundColor: '#f8f9fa', zIndex: 2 }}>Antesis Dejadas</th>
+                        <th style={{ padding: '12px 8px', textAlign: 'center', position: 'sticky', top: 0, backgroundColor: '#f8f9fa', zIndex: 2 }}>Post Antesis</th>
+                        <th style={{ padding: '12px 8px', textAlign: 'center', position: 'sticky', top: 0, backgroundColor: '#f8f9fa', zIndex: 2 }}>Post Antesis Dejadas</th>
+                        <th style={{ padding: '12px 8px', textAlign: 'center', position: 'sticky', top: 0, backgroundColor: '#f8f9fa', zIndex: 2 }}>Espate</th>
+                        <th style={{ padding: '12px 8px', textAlign: 'center', position: 'sticky', top: 0, backgroundColor: '#f8f9fa', zIndex: 2 }}>Aplicación</th>
+                        <th style={{ padding: '12px 8px', textAlign: 'center', position: 'sticky', top: 0, backgroundColor: '#f8f9fa', zIndex: 2 }}>Marcación</th>
+                        <th style={{ padding: '12px 8px', textAlign: 'center', position: 'sticky', top: 0, backgroundColor: '#f8f9fa', zIndex: 2 }}>Repaso 1</th>
+                        <th style={{ padding: '12px 8px', textAlign: 'center', position: 'sticky', top: 0, backgroundColor: '#f8f9fa', zIndex: 2 }}>Repaso 2</th>
+                        <th style={{ padding: '12px 8px', textAlign: 'center', position: 'sticky', top: 0, backgroundColor: '#f8f9fa', zIndex: 2 }}>Observaciones</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {selectedEvaluation?.evaluacionesPolinizacion && selectedEvaluation.evaluacionesPolinizacion.length > 0 ? (
+                        selectedEvaluation.evaluacionesPolinizacion.map((evento, index) => (
+                          <tr key={index} style={{
+                            backgroundColor: index % 2 === 0 ? 'white' : '#f9f9f9',
+                            borderBottom: '1px solid #eee'
+                          }}>
+                            <td style={{ padding: '8px', textAlign: 'center' }}>{evento.fecha || '-'}</td>
+                            <td style={{ padding: '8px', textAlign: 'center' }}>{evento.hora || '-'}</td>
+                            <td style={{ padding: '8px', textAlign: 'center' }}>{evento.semana || '-'}</td>
+                            <td style={{ padding: '8px', textAlign: 'center' }}>{evento.ubicacion || '-'}</td>
+                            <td style={{ padding: '8px', textAlign: 'center' }}>{evento.lote || '-'}</td>
+                            <td style={{ padding: '8px', textAlign: 'center' }}>{evento.seccion || '-'}</td>
+                            <td style={{ padding: '8px', textAlign: 'center' }}>{evento.palma || '-'}</td>
+                            <td style={{ padding: '8px', textAlign: 'center' }}>{evento.inflorescencia || '0'}</td>
+                            <td style={{ padding: '8px', textAlign: 'center' }}>{evento.antesis || '0'}</td>
+                            <td style={{ padding: '8px', textAlign: 'center' }}>{evento.antesisDejadas || '0'}</td>
+                            <td style={{ padding: '8px', textAlign: 'center' }}>{evento.postAntesis || '0'}</td>
+                            <td style={{ padding: '8px', textAlign: 'center' }}>{evento.postAntesisDejadas || '0'}</td>
+                            <td style={{ padding: '8px', textAlign: 'center' }}>{evento.espate || '0'}</td>
+                            <td style={{ padding: '8px', textAlign: 'center' }}>{evento.aplicacion || '0'}</td>
+                            <td style={{ padding: '8px', textAlign: 'center' }}>{evento.marcacion || '0'}</td>
+                            <td style={{ padding: '8px', textAlign: 'center' }}>{evento.repaso1 || '0'}</td>
+                            <td style={{ padding: '8px', textAlign: 'center' }}>{evento.repaso2 || '0'}</td>
+                            <td style={{ padding: '8px', textAlign: 'center' }}>{evento.observaciones || '-'}</td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan="18" style={{ padding: '16px', textAlign: 'center' }}>
+                            No hay eventos de polinización disponibles para esta evaluación
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </Modal>
+        )}
+      </ErrorBoundary>
     </>
   );
 };

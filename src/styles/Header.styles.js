@@ -14,6 +14,10 @@ export const HeaderContainer = styled.div`
   left: 0;
   right: 0;
   z-index: 1000;
+  
+  @media (max-width: 768px) {
+    padding: 0 10px;
+  }
 `;
 
 export const Logo = styled.div`
@@ -21,11 +25,32 @@ export const Logo = styled.div`
   align-items: center;
   font-size: 1.5rem;
   font-weight: bold;
+  
+  @media (max-width: 768px) {
+    font-size: 1.2rem;
+  }
+  
+  @media (max-width: 480px) {
+    font-size: 1rem;
+    
+    span {
+      display: none;
+    }
+  }
 `;
 
 export const LogoImage = styled.img`
   height: 40px;
   margin-right: 10px;
+  
+  @media (max-width: 768px) {
+    height: 35px;
+  }
+  
+  @media (max-width: 480px) {
+    height: 30px;
+    margin-right: 5px;
+  }
 `;
 
 export const MenuIcon = styled.div`
@@ -43,6 +68,34 @@ export const SearchBar = styled.div`
   background-color: rgba(255, 255, 255, 0.2);
   border-radius: 50px;
   padding: 0 15px;
+  
+  @media (max-width: 1024px) {
+    width: 300px;
+    max-width: 300px;
+  }
+  
+  @media (max-width: 768px) {
+    width: 200px;
+    max-width: 200px;
+  }
+  
+  @media (max-width: 480px) {
+    width: 40px;
+    max-width: 40px;
+    background-color: transparent;
+    padding: 0;
+    margin: 0 5px;
+    
+    &:focus-within {
+      position: absolute;
+      left: 50px;
+      right: 50px;
+      width: calc(100% - 100px);
+      max-width: none;
+      background-color: rgba(255, 255, 255, 0.2);
+      padding: 0 15px;
+    }
+  }
 `;
 
 export const SearchInput = styled.input`
@@ -59,6 +112,19 @@ export const SearchInput = styled.input`
   
   &:focus {
     outline: none;
+  }
+  
+  @media (max-width: 480px) {
+    padding: 8px 5px;
+    display: none;
+    
+    &:focus {
+      display: block;
+    }
+    
+    ${SearchBar}:focus-within & {
+      display: block;
+    }
   }
 `;
 

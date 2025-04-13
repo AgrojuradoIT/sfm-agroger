@@ -6,7 +6,11 @@ export const styles = {
   // Estilos para la tarjeta de información general
   infoCard: {
     boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-    height: '100%'
+    height: '100%',
+    overflow: 'hidden',
+    '@media (max-width: 768px)': {
+      marginBottom: '16px'
+    }
   },
   
   // Estilos para el overlay de la foto
@@ -150,7 +154,11 @@ export const styles = {
     margin: '0 auto',
     display: 'flex',
     flexDirection: 'column',
-    alignItems: 'center'
+    alignItems: 'center',
+    '@media (max-width: 768px)': {
+      padding: '16px',
+      width: '95vw'
+    }
   },
   
   // Estilos para el contenedor del modal de eventos
@@ -161,17 +169,15 @@ export const styles = {
     transform: 'translate(-50%, -50%)',
     width: '90%',
     height: '80%',
-    bgcolor: 'background.paper',
+    backgroundColor: 'white',
     border: '1px solid #ddd',
-    boxShadow: 24,
-    p: 0,
+    boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+    padding: 0,
     display: 'flex',
     flexDirection: 'column',
     borderRadius: '8px',
     overflow: 'hidden'
   },
-  
-
   
   modalHeader: {
     display: 'flex',
@@ -388,26 +394,20 @@ export const styles = {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: '12px 16px',
-    borderBottom: '1px solid #eee'
+    padding: '16px 24px',
+    backgroundColor: '#f5f5f5',
+    borderBottom: '1px solid #ddd'
   },
   
   eventosModalTitle: {
     fontWeight: 'bold',
-    color: '#444'
+    fontSize: '1.25rem',
+    margin: 0
   },
   
   eventosModalCloseButton: {
-    minWidth: '40px',
-    width: '40px',
-    height: '40px',
-    borderRadius: '50%',
-    color: '#777',
-    padding: 0,
-    '&:hover': {
-      color: '#f44336',
-      backgroundColor: 'rgba(0,0,0,0.03)'
-    }
+    minWidth: '36px',
+    padding: '4px 8px'
   },
   
   // Estilo para el icono de cierre del modal
@@ -416,13 +416,17 @@ export const styles = {
   },
   
   eventosModalContent: {
+    overflowX: 'auto',
+    overflowY: 'auto',
     flex: 1,
-    overflow: 'auto',
-    padding: '0 8px'
+    padding: '16px'
   },
   
   eventosModalTableContainer: {
-    minWidth: '100%'
+    minWidth: '1000px',
+    backgroundColor: 'white',
+    borderRadius: '8px',
+    boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
   },
   
   // Estilo para el contenedor del botón de exportar a Excel
@@ -462,28 +466,21 @@ export const styles = {
   eventosTable: {
     width: '100%',
     borderCollapse: 'collapse',
-    marginTop: '8px',
-    border: '1px solid #ddd'
+    fontSize: '0.875rem'
   },
   
   eventosTableHeaderRow: {
-    backgroundColor: '#f5f5f5',
-    position: 'sticky',
-    top: 0
+    backgroundColor: '#f8f9fa',
+    borderBottom: '2px solid #4caf50'
   },
   
   eventosTableHeaderCell: {
-    padding: '6px',
+    padding: '12px 8px',
     textAlign: 'center',
-    borderBottom: '1px solid #ddd',
-    borderRight: '1px solid #ddd',
-    fontWeight: 'bold',
-    fontSize: '0.8rem',
-    whiteSpace: 'nowrap',
     position: 'sticky',
     top: 0,
-    backgroundColor: '#f5f5f5',
-    zIndex: 1
+    backgroundColor: '#f8f9fa',
+    zIndex: 2
   },
   
   eventosTableHeaderCellWide: {
@@ -520,15 +517,12 @@ export const styles = {
   },
   
   eventosTableRowAlternate: {
-    backgroundColor: (index) => index % 2 === 0 ? 'white' : '#f8f8f8'
+    borderBottom: '1px solid #eee'
   },
   
   eventosTableDataCell: {
-    padding: '6px',
-    textAlign: 'center',
-    borderBottom: '1px solid #eee',
-    borderRight: '1px solid #eee',
-    fontSize: '0.8rem'
+    padding: '8px',
+    textAlign: 'center'
   },
   
   eventosTableDataCellWide: {
@@ -611,90 +605,109 @@ export const MainContainer = styled.div`
 export const PanelsContainer = styled.div`
   display: flex;
   height: calc(100vh - 60px);
-  background-color: #f5f5f5;
+  background-color: #f5f5f7;
+  
+  @media (max-width: 992px) {
+    height: auto;
+    flex-direction: column;
+  }
 `;
 
 // Filtro por fechas
 export const FilterPanel = styled.div`
   width: 250px;
-  min-width: 250px;
-  background-color: white;
-  border-right: 1px solid #ddd;
+  background-color: #fff;
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);
   overflow-y: auto;
+  display: flex;
+  flex-direction: column;
   
   .panel-header {
     padding: 15px;
     font-weight: bold;
-    background-color: #f8f9fa;
-    border-bottom: 1px solid #ddd;
+    border-bottom: 1px solid #eee;
+    font-size: 16px;
+    color: #333;
+    background-color: #f9f9f9;
     display: flex;
     align-items: center;
     gap: 8px;
+    
+    svg {
+      color: #4caf50;
+    }
+  }
+  
+  @media (max-width: 992px) {
+    width: 100%;
+    max-height: 250px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  }
+  
+  @media (max-width: 768px) {
+    max-height: 200px;
   }
 `;
 
 // Listado de evaluaciones por operario
 export const EvaluationsPanel = styled.div`
-  width: 300px;
-  min-width: 300px;
-  background-color: white;
-  border-right: 1px solid #ddd;
-  height: 100%;
+  width: 350px;
+  background-color: #fff;
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);
   display: flex;
   flex-direction: column;
-  overflow: hidden;
   
   .panel-header {
     padding: 15px;
     font-weight: bold;
-    background-color: #f8f9fa;
-    border-bottom: 1px solid #ddd;
+    border-bottom: 1px solid #eee;
+    font-size: 16px;
+    color: #333;
+    background-color: #f9f9f9;
     display: flex;
     align-items: center;
     gap: 8px;
-    position: sticky;
-    top: 0;
-    z-index: 1;
-    flex-shrink: 0; /* Evita que el encabezado se encoja */
+    
+    svg {
+      color: #4caf50;
+    }
   }
   
   .panel-content {
-    overflow-y: auto;
     flex: 1;
-    padding-bottom: 20px; /* Espacio en blanco después del último operario */
-    display: flex;
-    flex-direction: column;
+    overflow-y: auto;
+    padding: 0;
+    
+    .operator-list {
+      padding: 10px 0;
+    }
   }
   
-  .operator-list {
-    padding-bottom: 80px; /* Espacio adicional después del último operario */
+  @media (max-width: 992px) {
+    width: 100%;
+    max-height: 300px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  }
+  
+  @media (max-width: 768px) {
+    max-height: 250px;
   }
 `;
 
 // Detalle de la evaluación seleccionada
 export const DetailPanel = styled.div`
   flex: 1;
-  background-color: white;
-  overflow-y: auto;
+  background-color: #f9f9f9;
   padding: 20px;
+  overflow-y: auto;
   
-  table {
-    border-collapse: collapse;
-    width: 100%;
-    
-    th, td {
-      border: 1px solid #ddd;
-      padding: 8px;
-      text-align: left;
-    }
-    
-    th {
-      background-color: #f8f9fa;
-    }
-    
-    tr:nth-child(even) {
-      background-color: #f8f9fa;
-    }
+  @media (max-width: 992px) {
+    height: auto;
+    min-height: 500px;
+  }
+  
+  @media (max-width: 768px) {
+    padding: 10px;
   }
 `;
 
@@ -824,10 +837,14 @@ export const EvaluationItem = styled.div`
 `;
 
 export const EvaluacionesList = styled.div`
-  margin-top: 10px;
-  border-top: 1px solid #ddd;
   max-height: 300px;
   overflow-y: auto;
+  padding: 0 10px;
+  background-color: #f5f5f5;
+  
+  @media (max-width: 768px) {
+    max-height: 200px;
+  }
 `;
 
 export const EvaluacionItem = styled.div`
@@ -916,13 +933,12 @@ export const EvaluationTitle = styled.h1`
   color: #333;
 `;
 
-export const OperatorPhotoContainer = styled(Paper)`
+export const OperatorPhotoContainer = styled.div`
   padding: 0;
-  margin-bottom: 24px;
-  border-radius: 0;
-  background: transparent;
-  margin-left: -24px;
-  margin-right: -24px;
+  
+  @media (max-width: 992px) {
+    padding: 0 10px;
+  }
 `;
 
 export const OperatorNameHeader = styled(Box)`
@@ -940,28 +956,31 @@ export const OperatorTitle = styled(Typography)`
 `;
 
 export const PhotoBox = styled(Box)`
-  width: 100%;
-  padding: 0;
-  margin: 0;
+  position: relative;
+  width: calc(100% - 40px);
+  margin: 0 auto;
   border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  
+  @media (max-width: 768px) {
+    width: calc(100% - 20px);
+  }
 `;
 
-export const PhotoContainer = styled(Box)`
+export const PhotoContainer = styled.div`
   position: relative;
   width: 100%;
-  max-height: 400px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: #f5f5f5;
+  height: 320px;
+  border-radius: 8px;
   overflow: hidden;
-  border-radius: 4px;
-  transition: all 0.3s ease;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
   
-  &:hover {
-    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+  @media (max-width: 992px) {
+    height: 280px;
+  }
+  
+  @media (max-width: 768px) {
+    height: 240px;
   }
 `;
 
@@ -982,19 +1001,20 @@ export const OperatorPhoto = styled(Box)`
   }
 `;
 
-export const SignatureContainer = styled(Box)`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 180px;
-  background-color: #f5f5f5;
-  border-radius: 4px;
-  overflow: hidden;
-  transition: all 0.3s ease;
+export const SignatureContainer = styled.div`
   width: 100%;
+  height: 150px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  overflow: hidden;
+  padding: 10px;
+  background-color: #fff;
   
-  &:hover {
-    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+  @media (max-width: 768px) {
+    height: 120px;
   }
 `;
 
@@ -1194,6 +1214,11 @@ export const FincaHeader = styled.div`
   align-items: flex-start;
   gap: 2rem;
   margin-bottom: 2rem;
+  
+  @media (max-width: 992px) {
+    flex-direction: column;
+    gap: 1rem;
+  }
 `;
 
 export const FincaImage = styled.img`
@@ -1202,10 +1227,23 @@ export const FincaImage = styled.img`
   object-fit: cover;
   border-radius: 8px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  
+  @media (max-width: 992px) {
+    width: 100%;
+    height: 250px;
+  }
+  
+  @media (max-width: 768px) {
+    height: 200px;
+  }
 `;
 
 export const FincaInfo = styled.div`
   flex: 1;
+  
+  @media (max-width: 992px) {
+    width: 100%;
+  }
 `;
 
 export const FincaTitle = styled.h1`
@@ -1251,29 +1289,45 @@ export const Navigation = styled.div`
   display: flex;
   align-items: center;
   padding: 10px 20px;
-  background-color: white;
-  border-bottom: 1px solid #ddd;
+  background-color: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  margin-bottom: 16px;
   
   .nav-item {
-    display: flex;
-    align-items: center;
-  }
-  
-  .nav-link {
-    color: #0066cc;
-    cursor: pointer;
-    &:hover {
-      text-decoration: underline;
-    }
-  }
-  
-  .current {
+    font-size: 14px;
     color: #666;
+    
+    .nav-link {
+      color: #4caf50;
+      cursor: pointer;
+      text-decoration: none;
+      
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+    
+    .current {
+      font-weight: bold;
+      color: #333;
+    }
   }
   
   .separator {
     margin: 0 10px;
-    color: #666;
+    color: #ccc;
+  }
+  
+  @media (max-width: 768px) {
+    padding: 8px 12px;
+    
+    .nav-item {
+      font-size: 13px;
+    }
+    
+    .separator {
+      margin: 0 6px;
+    }
   }
 `;
 
