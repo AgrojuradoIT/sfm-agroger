@@ -25,6 +25,44 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
+// Componente para verificar permisos de ruta según el rol
+const RoleBasedRoute = ({ element, requiredRoles = [] }) => {
+  const [loading, setLoading] = useState(true);
+  const [userPermissions, setUserPermissions] = useState(null);
+  const location = useLocation();
+
+  useEffect(() => {
+    const checkPermissions = async () => {
+      try {
+        const userData = await authService.getCurrentUser();
+        setUserPermissions(userData?.permisos);
+      } catch (error) {
+        console.error("Error al obtener permisos:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkPermissions();
+  }, []);
+
+  if (loading) {
+    return <div>Cargando permisos...</div>;
+  }
+
+  // Si no hay restricciones de roles o el usuario es admin/coordinador, permitir acceso
+  if (requiredRoles.length === 0 || 
+      !userPermissions || 
+      userPermissions.rol_tipo === 'administrador' || 
+      userPermissions.rol_tipo === 'coordinador' ||
+      requiredRoles.includes(userPermissions.rol_tipo)) {
+    return element;
+  }
+
+  // Si no tiene permisos, redirigir a fincas
+  return <Navigate to="/fincas" state={{ from: location }} replace />;
+};
+
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(
     authService.isAuthenticated()
@@ -96,10 +134,23 @@ function App() {
                   <Routes>
                     <Route path="/fincas" element={<FincaList />} />
                     <Route path="/fincas/:id" element={
-                      <FincaDetail />
+                      <RoleBasedRoute 
+                        element={<FincaDetail />}
+                        requiredRoles={['administrador', 'coordinador', 'evaluador']} 
+                      />
                     } />
-                    <Route path="/informes" element={<div>Página de Informes</div>} />
-                    <Route path="/configuracion" element={<div>Página de Configuración</div>} />
+                    <Route path="/informes" element={
+                      <RoleBasedRoute 
+                        element={<div>Página de Informes</div>}
+                        requiredRoles={['administrador', 'coordinador']} 
+                      />
+                    } />
+                    <Route path="/configuracion" element={
+                      <RoleBasedRoute 
+                        element={<div>Página de Configuración</div>}
+                        requiredRoles={['administrador']} 
+                      />
+                    } />
                     <Route path="*" element={<Navigate to="/fincas" replace />} />
                   </Routes>
                 </div>
