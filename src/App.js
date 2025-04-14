@@ -127,10 +127,10 @@ function App() {
           <ProtectedRoute>
             <div style={{ display: "flex", height: "100vh", overflow: "hidden" }}>
               <Sidebar isOpen={sidebarOpen} />
-              <div style={{ flex: 1, transition: "margin-left 0.3s ease", width: "100%" }}>
+              <div style={{ flex: 1, transition: "margin-left 0.3s ease", width: "100%", overflowX: "hidden" }}>
                 <Header onLogout={handleLogout} toggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
                 <Navigation />
-                <div style={{ marginTop: "20px", padding: "20px" }}>
+                <div style={{ marginTop: "20px", padding: "20px", maxWidth: "100%", boxSizing: "border-box", overflowX: "hidden" }}>
                   <Routes>
                     <Route path="/fincas" element={<FincaList />} />
                     <Route path="/fincas/:id" element={
