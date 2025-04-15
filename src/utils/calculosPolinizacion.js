@@ -143,11 +143,11 @@ export const calcularMetricasPolinizacion = (evaluaciones) => {
 
   // Nuevos cálculos de proporcionalidad
   const proporcionalidadAntesis = sumaInflorescencia > 0
-    ? (sumaAntesis * 100) / sumaInflorescencia
+    ? ((sumaAntesis + sumaAntesisDejadas) * 100 / sumaInflorescencia)
     : 0;
 
   const proporcionalidadPostAntesis = sumaInflorescencia > 0
-    ? (sumaPostAntesis * 100) / sumaInflorescencia
+    ? ((sumaPostAntesis + sumaPostAntesisDejadas) * 100 / sumaInflorescencia)
     : 0;
     
 
