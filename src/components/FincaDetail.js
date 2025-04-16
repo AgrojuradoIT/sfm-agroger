@@ -335,8 +335,8 @@ const FincaDetail = () => {
         evaluacion.evaluacionesPolinizacion[0].seccion) {
       return evaluacion.evaluacionesPolinizacion[0].seccion;
     }
-    if (evaluacion.lote) return evaluacion.lote; // Usar lote como fallback si no hay sección
-    return null;
+    // Remove lote fallback
+    return null; 
   };
 
   const goToHome = () => {
@@ -775,24 +775,26 @@ const FincaDetail = () => {
                             </Grid>
                             <Grid item xs={12} sm={4}>
                               <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2 }}>
+                                {/* Sección Box */}
                                 <Box sx={{ flex: 1 }}>
-                                  {getSeccion(selectedEvaluation) && (
-                                    <>
-                                      <Typography variant="subtitle2" color="text.secondary">Sección</Typography>
-                                      <Typography variant="body1" sx={{ fontWeight: 'medium' }}>{getSeccion(selectedEvaluation)}</Typography>
-                                    </>
-                                  )}
+                                  {(() => {
+                                    const seccionValue = getSeccion(selectedEvaluation); // Use modified getSeccion
+                                    return (
+                                      <>
+                                        <Typography variant="subtitle2" color="text.secondary">Sección</Typography>
+                                        <Typography variant="body1" sx={{ fontWeight: 'medium' }}>{seccionValue || 'N/A'}</Typography>
+                                      </>
+                                    );
+                                  })()}
                                 </Box>
+                                {/* Lote Box */}
                                 <Box sx={{ flex: 1 }}>
-                                  {selectedEvaluation?.lote && (
-                                    <>
-                                      <Typography variant="subtitle2" color="text.secondary">Lote</Typography>
-                                      <Typography variant="body1" sx={{ fontWeight: 'medium' }}>{selectedEvaluation.lote}</Typography>
-                                    </>
-                                  )}
+                                  {/* Check specifically for lote */}
+                                  <Typography variant="subtitle2" color="text.secondary">Lote</Typography>
+                                  <Typography variant="body1" sx={{ fontWeight: 'medium' }}>{selectedEvaluation?.lote || 'N/A'}</Typography>
                                 </Box>
                               </Box>
-                              
+
                               <Typography variant="subtitle2" color="text.secondary" sx={{ mt: 1 }}>Evaluador</Typography>
                               <Typography variant="body1" sx={{ fontWeight: 'medium' }}>{selectedEvaluation?.evaluador || 'No especificado'}</Typography>
                             </Grid>
@@ -1647,14 +1649,17 @@ const FincaDetail = () => {
                 </div>
               </div>
               
+              {/* Apply padding here and remove overflowY */}
               <div style={{
-                overflowX: 'auto',
-                overflowY: 'auto',
                 flex: 1,
                 padding: '16px'
+                // Remove overflowY: 'auto'
               }}>
+                {/* Apply overflowX/Y and maxHeight to direct table wrapper */}
                 <div style={{
-                  minWidth: '1000px',
+                  overflowX: 'auto',
+                  overflowY: 'auto', // Add vertical scroll
+                  maxHeight: 'calc(80vh - 150px)', // Limit height (adjust as needed)
                   backgroundColor: 'white',
                   borderRadius: '8px',
                   boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
@@ -1662,60 +1667,68 @@ const FincaDetail = () => {
                   <table style={{
                     width: '100%',
                     borderCollapse: 'collapse',
-                    fontSize: '0.875rem'
+                    fontSize: '0.875rem',
+                    minWidth: '1000px' // Add minWidth to table itself
                   }}>
                     <thead>
                       <tr style={{
                         backgroundColor: '#f8f9fa',
                         borderBottom: '2px solid #4caf50'
                       }}>
-                        <th style={{ padding: '12px 8px', textAlign: 'center', position: 'sticky', top: 0, backgroundColor: '#f8f9fa', zIndex: 2 }}>Fecha</th>
-                        <th style={{ padding: '12px 8px', textAlign: 'center', position: 'sticky', top: 0, backgroundColor: '#f8f9fa', zIndex: 2 }}>Hora</th>
-                        <th style={{ padding: '12px 8px', textAlign: 'center', position: 'sticky', top: 0, backgroundColor: '#f8f9fa', zIndex: 2 }}>Semana</th>
-                        <th style={{ padding: '12px 8px', textAlign: 'center', position: 'sticky', top: 0, backgroundColor: '#f8f9fa', zIndex: 2 }}>Ubicación</th>
-                        <th style={{ padding: '12px 8px', textAlign: 'center', position: 'sticky', top: 0, backgroundColor: '#f8f9fa', zIndex: 2 }}>Lote</th>
-                        <th style={{ padding: '12px 8px', textAlign: 'center', position: 'sticky', top: 0, backgroundColor: '#f8f9fa', zIndex: 2 }}>Sección</th>
-                        <th style={{ padding: '12px 8px', textAlign: 'center', position: 'sticky', top: 0, backgroundColor: '#f8f9fa', zIndex: 2 }}>Palma</th>
-                        <th style={{ padding: '12px 8px', textAlign: 'center', position: 'sticky', top: 0, backgroundColor: '#f8f9fa', zIndex: 2 }}>Inflorescencia</th>
-                        <th style={{ padding: '12px 8px', textAlign: 'center', position: 'sticky', top: 0, backgroundColor: '#f8f9fa', zIndex: 2 }}>Antesis</th>
-                        <th style={{ padding: '12px 8px', textAlign: 'center', position: 'sticky', top: 0, backgroundColor: '#f8f9fa', zIndex: 2 }}>Antesis Dejadas</th>
-                        <th style={{ padding: '12px 8px', textAlign: 'center', position: 'sticky', top: 0, backgroundColor: '#f8f9fa', zIndex: 2 }}>Post Antesis</th>
-                        <th style={{ padding: '12px 8px', textAlign: 'center', position: 'sticky', top: 0, backgroundColor: '#f8f9fa', zIndex: 2 }}>Post Antesis Dejadas</th>
-                        <th style={{ padding: '12px 8px', textAlign: 'center', position: 'sticky', top: 0, backgroundColor: '#f8f9fa', zIndex: 2 }}>Espate</th>
-                        <th style={{ padding: '12px 8px', textAlign: 'center', position: 'sticky', top: 0, backgroundColor: '#f8f9fa', zIndex: 2 }}>Aplicación</th>
-                        <th style={{ padding: '12px 8px', textAlign: 'center', position: 'sticky', top: 0, backgroundColor: '#f8f9fa', zIndex: 2 }}>Marcación</th>
-                        <th style={{ padding: '12px 8px', textAlign: 'center', position: 'sticky', top: 0, backgroundColor: '#f8f9fa', zIndex: 2 }}>Repaso 1</th>
-                        <th style={{ padding: '12px 8px', textAlign: 'center', position: 'sticky', top: 0, backgroundColor: '#f8f9fa', zIndex: 2 }}>Repaso 2</th>
-                        <th style={{ padding: '12px 8px', textAlign: 'center', position: 'sticky', top: 0, backgroundColor: '#f8f9fa', zIndex: 2 }}>Observaciones</th>
+                        {/* Add sx for responsive styles */}
+                        <th style={{ textAlign: 'center', position: 'sticky', top: 0, backgroundColor: '#f8f9fa', zIndex: 2, whiteSpace: 'nowrap', padding: '10px 6px' }}>Fecha</th>
+                        <th style={{ textAlign: 'center', position: 'sticky', top: 0, backgroundColor: '#f8f9fa', zIndex: 2, whiteSpace: 'nowrap', padding: '10px 6px' }}>Hora</th>
+                        <th style={{ textAlign: 'center', position: 'sticky', top: 0, backgroundColor: '#f8f9fa', zIndex: 2, whiteSpace: 'nowrap', padding: '10px 6px' }}>Semana</th>
+                        <th style={{ textAlign: 'center', position: 'sticky', top: 0, backgroundColor: '#f8f9fa', zIndex: 2, whiteSpace: 'nowrap', padding: '10px 6px', display: { xs: 'none', sm: 'table-cell' } }}>Ubicación</th>
+                        <th style={{ textAlign: 'center', position: 'sticky', top: 0, backgroundColor: '#f8f9fa', zIndex: 2, whiteSpace: 'nowrap', padding: '10px 6px' }}>Lote</th>
+                        <th style={{ textAlign: 'center', position: 'sticky', top: 0, backgroundColor: '#f8f9fa', zIndex: 2, whiteSpace: 'nowrap', padding: '10px 6px' }}>Sección</th>
+                        <th style={{ textAlign: 'center', position: 'sticky', top: 0, backgroundColor: '#f8f9fa', zIndex: 2, whiteSpace: 'nowrap', padding: '10px 6px' }}>Palma</th>
+                        <th style={{ textAlign: 'center', position: 'sticky', top: 0, backgroundColor: '#f8f9fa', zIndex: 2, whiteSpace: 'nowrap', padding: '10px 6px' }}>Inflorescencia</th>
+                        <th style={{ textAlign: 'center', position: 'sticky', top: 0, backgroundColor: '#f8f9fa', zIndex: 2, whiteSpace: 'nowrap', padding: '10px 6px' }}>Antesis</th>
+                        <th style={{ textAlign: 'center', position: 'sticky', top: 0, backgroundColor: '#f8f9fa', zIndex: 2, whiteSpace: 'nowrap', padding: '10px 6px' }}>Antesis Dejadas</th>
+                        <th style={{ textAlign: 'center', position: 'sticky', top: 0, backgroundColor: '#f8f9fa', zIndex: 2, whiteSpace: 'nowrap', padding: '10px 6px' }}>Post Antesis</th>
+                        <th style={{ textAlign: 'center', position: 'sticky', top: 0, backgroundColor: '#f8f9fa', zIndex: 2, whiteSpace: 'nowrap', padding: '10px 6px' }}>Post Antesis Dejadas</th>
+                        <th style={{ textAlign: 'center', position: 'sticky', top: 0, backgroundColor: '#f8f9fa', zIndex: 2, whiteSpace: 'nowrap', padding: '10px 6px' }}>Espate</th>
+                        <th style={{ textAlign: 'center', position: 'sticky', top: 0, backgroundColor: '#f8f9fa', zIndex: 2, whiteSpace: 'nowrap', padding: '10px 6px' }}>Aplicación</th>
+                        <th style={{ textAlign: 'center', position: 'sticky', top: 0, backgroundColor: '#f8f9fa', zIndex: 2, whiteSpace: 'nowrap', padding: '10px 6px' }}>Marcación</th>
+                        <th style={{ textAlign: 'center', position: 'sticky', top: 0, backgroundColor: '#f8f9fa', zIndex: 2, whiteSpace: 'nowrap', padding: '10px 6px' }}>Repaso 1</th>
+                        <th style={{ textAlign: 'center', position: 'sticky', top: 0, backgroundColor: '#f8f9fa', zIndex: 2, whiteSpace: 'nowrap', padding: '10px 6px' }}>Repaso 2</th>
+                        <th style={{ textAlign: 'center', position: 'sticky', top: 0, backgroundColor: '#f8f9fa', zIndex: 2, whiteSpace: 'nowrap', padding: '10px 6px' }}>Observaciones</th>
                       </tr>
                     </thead>
                     <tbody>
                       {selectedEvaluation?.evaluacionesPolinizacion && selectedEvaluation.evaluacionesPolinizacion.length > 0 ? (
-                        selectedEvaluation.evaluacionesPolinizacion.map((evento, index) => (
-                          <tr key={index} style={{
-                            backgroundColor: index % 2 === 0 ? 'white' : '#f9f9f9',
-                            borderBottom: '1px solid #eee'
-                          }}>
-                            <td style={{ padding: '8px', textAlign: 'center' }}>{evento.fecha || '-'}</td>
-                            <td style={{ padding: '8px', textAlign: 'center' }}>{evento.hora || '-'}</td>
-                            <td style={{ padding: '8px', textAlign: 'center' }}>{evento.semana || '-'}</td>
-                            <td style={{ padding: '8px', textAlign: 'center' }}>{evento.ubicacion || '-'}</td>
-                            <td style={{ padding: '8px', textAlign: 'center' }}>{evento.lote || '-'}</td>
-                            <td style={{ padding: '8px', textAlign: 'center' }}>{evento.seccion || '-'}</td>
-                            <td style={{ padding: '8px', textAlign: 'center' }}>{evento.palma || '-'}</td>
-                            <td style={{ padding: '8px', textAlign: 'center' }}>{evento.inflorescencia || '0'}</td>
-                            <td style={{ padding: '8px', textAlign: 'center' }}>{evento.antesis || '0'}</td>
-                            <td style={{ padding: '8px', textAlign: 'center' }}>{evento.antesisDejadas || '0'}</td>
-                            <td style={{ padding: '8px', textAlign: 'center' }}>{evento.postAntesis || '0'}</td>
-                            <td style={{ padding: '8px', textAlign: 'center' }}>{evento.postAntesisDejadas || '0'}</td>
-                            <td style={{ padding: '8px', textAlign: 'center' }}>{evento.espate || '0'}</td>
-                            <td style={{ padding: '8px', textAlign: 'center' }}>{evento.aplicacion || '0'}</td>
-                            <td style={{ padding: '8px', textAlign: 'center' }}>{evento.marcacion || '0'}</td>
-                            <td style={{ padding: '8px', textAlign: 'center' }}>{evento.repaso1 || '0'}</td>
-                            <td style={{ padding: '8px', textAlign: 'center' }}>{evento.repaso2 || '0'}</td>
-                            <td style={{ padding: '8px', textAlign: 'center' }}>{evento.observaciones || '-'}</td>
-                          </tr>
-                        ))
+                        selectedEvaluation.evaluacionesPolinizacion.map((evento, index) => {
+                          // Remove debugging log
+                          // console.log(`Evento ${index + 1}:`, evento);
+                          return (
+                            <tr key={index} style={{
+                              backgroundColor: index % 2 === 0 ? 'white' : '#f9f9f9',
+                              borderBottom: '1px solid #eee'
+                            }}>
+                              {/* Add sx for responsive styles */}
+                              <td style={{ textAlign: 'center', whiteSpace: 'nowrap', padding: '6px 4px' }}>{evento.fecha || '-'}</td>
+                              <td style={{ textAlign: 'center', whiteSpace: 'nowrap', padding: '6px 4px' }}>{evento.hora || '-'}</td>
+                              <td style={{ textAlign: 'center', whiteSpace: 'nowrap', padding: '6px 4px' }}>{evento.semana || '-'}</td>
+                              <td style={{ textAlign: 'center', whiteSpace: 'nowrap', padding: '6px 4px', display: { xs: 'none', sm: 'table-cell' } }}>{evento.ubicacion || '-'}</td>
+                              {/* Apply null/undefined check for idlote */}
+                              <td style={{ textAlign: 'center', whiteSpace: 'nowrap', padding: '6px 4px' }}>{evento.idlote == null ? '-' : evento.idlote}</td> 
+                              <td style={{ textAlign: 'center', whiteSpace: 'nowrap', padding: '6px 4px' }}>{evento.seccion || '-'}</td>
+                              <td style={{ textAlign: 'center', whiteSpace: 'nowrap', padding: '6px 4px' }}>{evento.palma || '-'}</td>
+                              <td style={{ textAlign: 'center', whiteSpace: 'nowrap', padding: '6px 4px' }}>{evento.inflorescencia == null ? '-' : evento.inflorescencia}</td>
+                              <td style={{ textAlign: 'center', whiteSpace: 'nowrap', padding: '6px 4px' }}>{evento.antesis == null ? '-' : evento.antesis}</td>
+                              <td style={{ textAlign: 'center', whiteSpace: 'nowrap', padding: '6px 4px' }}>{evento.antesisDejadas == null ? '-' : evento.antesisDejadas}</td>
+                              <td style={{ textAlign: 'center', whiteSpace: 'nowrap', padding: '6px 4px' }}>{evento.postantesis == null ? '-' : evento.postantesis}</td>
+                              <td style={{ textAlign: 'center', whiteSpace: 'nowrap', padding: '6px 4px' }}>{evento.postAntesisDejadas == null ? '-' : evento.postAntesisDejadas}</td>
+                              <td style={{ textAlign: 'center', whiteSpace: 'nowrap', padding: '6px 4px' }}>{evento.espate == null ? '-' : evento.espate}</td>
+                              <td style={{ textAlign: 'center', whiteSpace: 'nowrap', padding: '6px 4px' }}>{evento.aplicacion == null ? '-' : evento.aplicacion}</td>
+                              <td style={{ textAlign: 'center', whiteSpace: 'nowrap', padding: '6px 4px' }}>{evento.marcacion == null ? '-' : evento.marcacion}</td>
+                              <td style={{ textAlign: 'center', whiteSpace: 'nowrap', padding: '6px 4px' }}>{evento.repaso1 == null ? '-' : evento.repaso1}</td>
+                              <td style={{ textAlign: 'center', whiteSpace: 'nowrap', padding: '6px 4px' }}>{evento.repaso2 == null ? '-' : evento.repaso2}</td>
+                              <td style={{ textAlign: 'center', whiteSpace: 'nowrap', padding: '6px 4px' }}>{evento.observaciones || '-'}</td>
+                            </tr>
+                          );
+                        })
                       ) : (
                         <tr>
                           <td colSpan="18" style={{ padding: '16px', textAlign: 'center' }}>

@@ -175,16 +175,32 @@ export const UserMenu = styled.div`
 
 export const UserEmail = styled.div`
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  align-items: flex-start;
   padding: 12px 16px;
   border-bottom: 1px solid #f0f0f0;
   
-  .email {
+  .user-name {
     color: #333;
-    font-size: 14px;
+    font-size: 15px;
+    font-weight: 500;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    margin-bottom: 4px;
+  }
+  
+  .user-email-small {
+    color: #666;
+    font-size: 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  .avatar {
+    /* Adjustments might be needed if avatar is inside this column flex */
+    /* For now, assume avatar is handled separately or its style is okay */
   }
 `;
 

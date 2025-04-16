@@ -20,19 +20,39 @@ import authService from '../services/authService';
 
 const Header = ({ onLogout, toggleSidebar }) => {
   const [userEmail, setUserEmail] = useState("");
+  const [userName, setUserName] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   
+  const navigate = useNavigate();
+
   useEffect(() => {
-    // Get the user email from localStorage if available
-    const storedEmail = localStorage.getItem("userEmail");
-    if (storedEmail) {
-      setUserEmail(storedEmail);
+    // Try to get user info from localStorage
+    const storedUserString = localStorage.getItem("usuario");
+    const storedEmail = localStorage.getItem("userEmail"); // Keep email as potential fallback
+    
+    let emailToShow = storedEmail || "";
+    let nameToShow = "";
+
+    if (storedUserString) {
+      try {
+        const storedUser = JSON.parse(storedUserString);
+        if (storedUser) {
+          nameToShow = storedUser.nombre || ""; // Get name from user object
+          emailToShow = storedUser.email || emailToShow; // Update email from user object if available
+        }
+      } catch (error) {
+        console.error("Error parsing user data from localStorage:", error);
+      }
     }
+    
+    // Set state based on what was found
+    setUserEmail(emailToShow);
+    setUserName(nameToShow);
+
   }, []);
   const location = useLocation();
   const params = useParams();
-  const navigate = useNavigate();
   
   const getRouteTitle = () => {
     const pathSegments = location.pathname.split('/').filter(Boolean);
@@ -109,12 +129,17 @@ const Header = ({ onLogout, toggleSidebar }) => {
       </SearchBar>
       
       <RightSection>
-        <UserIcon onClick={toggleMenu}>{userEmail ? userEmail.charAt(0).toUpperCase() : 'A'}</UserIcon>
+        <UserIcon onClick={toggleMenu}>{userName ? userName.charAt(0).toUpperCase() : (userEmail ? userEmail.charAt(0).toUpperCase() : 'A')}</UserIcon>
         
         <UserMenu isOpen={menuOpen}>
           <UserEmail>
-            <UserIcon className="avatar">{userEmail ? userEmail.charAt(0).toUpperCase() : 'A'}</UserIcon>
-            <span className="email">{userEmail || 'Usuario'}</span>
+            <UserIcon className="avatar">{userName ? userName.charAt(0).toUpperCase() : (userEmail ? userEmail.charAt(0).toUpperCase() : 'A')}</UserIcon>
+            <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+              <span className="user-name">{userName || 'Usuario'}</span>
+              {userEmail && (
+                <span className="user-email-small">{userEmail}</span>
+              )}
+            </div>
           </UserEmail>
           
           <LogoutButton onClick={handleLogout}>
