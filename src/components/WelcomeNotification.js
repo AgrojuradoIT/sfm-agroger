@@ -7,7 +7,7 @@ import {
   CloseButton 
 } from '../styles/WelcomeNotificationStyles';
 
-const WelcomeNotification = ({ username, profileImage, onClose }) => {
+const WelcomeNotification = ({ fullName, profileImage, onClose }) => {
   useEffect(() => {
     const timer = setTimeout(() => {
       onClose();
@@ -28,7 +28,7 @@ const WelcomeNotification = ({ username, profileImage, onClose }) => {
         alt="Perfil" 
       />
       <Message>
-        ¡Bienvenido <strong>{username}</strong> a SFM AGROGER!
+        ¡Bienvenido <strong>{fullName}</strong> a SFM AGROGER!
       </Message>
       <CloseButton onClick={onClose}>
         <FaTimes />
