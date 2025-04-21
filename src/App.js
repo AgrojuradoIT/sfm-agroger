@@ -9,6 +9,7 @@ import Login from "./pages/Login";
 import WelcomeNotification from './components/WelcomeNotification';
 import defaultProfile from './assets/default-profile.png';
 import authService from './services/authService';
+import HistorialOperario from './pages/HistorialOperario';
 
 // Componente de protección de rutas
 const ProtectedRoute = ({ children }) => {
@@ -136,6 +137,12 @@ function App() {
                     <Route path="/fincas/:id" element={
                       <RoleBasedRoute 
                         element={<FincaDetail />}
+                        requiredRoles={['administrador', 'coordinador', 'evaluador']} 
+                      />
+                    } />
+                    <Route path="/operario/:nombreOperario" element={
+                      <RoleBasedRoute 
+                        element={<HistorialOperario />}
                         requiredRoles={['administrador', 'coordinador', 'evaluador']} 
                       />
                     } />

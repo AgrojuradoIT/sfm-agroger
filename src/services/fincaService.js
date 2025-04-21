@@ -94,6 +94,61 @@ const fincaService = {
       console.error('Error obteniendo evaluaciones por operario:', error);
       return [];
     }
+  },
+
+  // Obtener historial de evaluaciones de un operario
+  getHistorialOperario: async (nombreOperario) => {
+    try {
+      const response = await api.get(`/evaluaciones-operario?nombre=${encodeURIComponent(nombreOperario)}`);
+      return response.data || { evaluaciones: [], mensaje: '' };
+    } catch (error) {
+      console.error('Error obteniendo historial del operario:', error);
+      
+      // Generar datos de ejemplo para mostrar la interfaz
+      const evaluacionesEjemplo = [];
+      const fechasAleatorias = [];
+      
+      // Generar fechas aleatorias de los últimos 6 meses
+      const hoy = new Date();
+      for (let i = 0; i < 10; i++) {
+        const fecha = new Date(hoy);
+        fecha.setDate(hoy.getDate() - Math.floor(Math.random() * 180)); // Últimos 6 meses
+        const dia = fecha.getDate().toString().padStart(2, '0');
+        const mes = (fecha.getMonth() + 1).toString().padStart(2, '0');
+        const año = fecha.getFullYear();
+        fechasAleatorias.push(`${dia}/${mes}/${año}`);
+      }
+      
+      // Ordenar fechas de más reciente a más antigua
+      fechasAleatorias.sort((a, b) => {
+        const [diaA, mesA, añoA] = a.split('/').map(Number);
+        const [diaB, mesB, añoB] = b.split('/').map(Number);
+        
+        if (añoA !== añoB) return añoB - añoA;
+        if (mesA !== mesB) return mesB - mesA;
+        return diaB - diaA;
+      });
+      
+      // Generar evaluaciones de ejemplo
+      for (let i = 0; i < 10; i++) {
+        evaluacionesEjemplo.push({
+          id: i + 1,
+          fecha: fechasAleatorias[i],
+          finca: `Finca ${String.fromCharCode(65 + Math.floor(Math.random() * 4))}`, // A, B, C o D
+          lote: `Lote ${Math.floor(Math.random() * 10) + 1}`,
+          seccion: `Sección ${Math.floor(Math.random() * 5) + 1}`,
+          evaluador: `Evaluador ${Math.floor(Math.random() * 3) + 1}`,
+          calificacion: Math.floor(Math.random() * 5) + 1, // Calificación 1-5
+          observaciones: `Observación de ejemplo #${i + 1}`,
+          polinizador: nombreOperario
+        });
+      }
+      
+      return { 
+        evaluaciones: evaluacionesEjemplo, 
+        mensaje: 'Error al conectar con la API. Mostrando datos de ejemplo.' 
+      };
+    }
   }
 };
 

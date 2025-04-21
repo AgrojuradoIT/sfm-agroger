@@ -771,7 +771,26 @@ const FincaDetail = () => {
                               )}
                               
                               <Typography variant="subtitle2" color="text.secondary" sx={{ mt: 1 }}>Polinizador</Typography>
-                              <Typography variant="body1" sx={{ fontWeight: 'medium' }}>{selectedEvaluation?.polinizador || 'No especificado'}</Typography>
+                              <Typography variant="body1" sx={{ fontWeight: 'medium', display: 'flex', alignItems: 'center' }}>
+                                {selectedEvaluation?.polinizador || 'No especificado'}
+                                {selectedEvaluation?.polinizador && selectedEvaluation.polinizador !== 'No especificado' && (
+                                  <Button
+                                    variant="contained"
+                                    size="small"
+                                    color="primary"
+                                    sx={{ 
+                                      ml: 1, 
+                                      minWidth: 'auto', 
+                                      padding: '2px 8px',
+                                      backgroundColor: '#2e7d32',
+                                      '&:hover': { backgroundColor: '#1b5e20' }
+                                    }}
+                                    onClick={() => navigate(`/operario/${encodeURIComponent(selectedEvaluation.polinizador)}`)}
+                                  >
+                                    Hoja de vida
+                                  </Button>
+                                )}
+                              </Typography>
                             </Grid>
                             <Grid item xs={12} sm={4}>
                               <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2 }}>
