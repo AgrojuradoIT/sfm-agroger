@@ -140,8 +140,8 @@ function App() {
                         requiredRoles={['administrador', 'coordinador', 'evaluador']} 
                       />
                     } />
-                    <Route path="/operario/:operarioId/:nombreOperario" element={
-                      <RoleBasedRoute 
+                    <Route path="/operario/:operarioId/:nombreOperario" element={ 
+                      <RoleBasedRoute
                         element={<HistorialOperario />}
                         requiredRoles={['administrador', 'coordinador', 'evaluador']} 
                       />

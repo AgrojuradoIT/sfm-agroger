@@ -786,8 +786,8 @@ const FincaDetail = () => {
                                       backgroundColor: '#2e7d32',
                                       '&:hover': { backgroundColor: '#1b5e20' }
                                     }}
-                                    // Navegación actualizada para usar solo el ID
-                                    onClick={() => navigate(`/operarios/${selectedEvaluation.polinizador.id}`)}
+                                    // Navegación revertida para usar ID y Nombre codificado
+                                    onClick={() => navigate(`/operario/${selectedEvaluation.polinizador.id}/${encodeURIComponent(selectedEvaluation.polinizador.nombre)}`)}
                                   >
                                     Hoja de vida
                                   </Button>
