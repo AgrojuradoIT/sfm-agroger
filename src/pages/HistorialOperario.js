@@ -36,6 +36,8 @@ import {
 } from 'react-icons/fa';
 import fincaService from '../services/fincaService';
 import { calcularMetricasPolinizacion } from '../utils/calculosPolinizacion';
+import { Line } from 'react-chartjs-2';
+import Chart from 'chart.js/auto';
 
 const HistorialOperario = () => {
   const { operarioId, nombreOperario } = useParams();
@@ -131,21 +133,112 @@ const HistorialOperario = () => {
     return null;
   };
 
+  // Función auxiliar para obtener la sección de una evaluación
+  const getSeccion = (evaluacion) => {
+    if (!evaluacion) return null;
+    if (evaluacion.seccion) return evaluacion.seccion;
+    if (evaluacion.evaluacionesPolinizacion && 
+        evaluacion.evaluacionesPolinizacion.length > 0 &&
+        evaluacion.evaluacionesPolinizacion[0].seccion) {
+      return evaluacion.evaluacionesPolinizacion[0].seccion;
+    }
+    return null;
+  };
+
+  // Función para obtener la sección más frecuente
+  const getSeccionFrecuente = (evaluaciones) => {
+    const conteo = {};
+    evaluaciones.forEach(ev => {
+      const seccion = getSeccion(ev);
+      if (seccion) conteo[seccion] = (conteo[seccion] || 0) + 1;
+    });
+    const max = Object.entries(conteo).reduce((a, b) => (a[1] > b[1] ? a : b), [null, 0]);
+    return max[0] || 'N/A';
+  };
+
+  // Calcular los rendimientos globales para todas las evaluaciones
+  const rendimientos = historial.map(ev => {
+    const metricas = calcularMetricasPolinizacion(ev.evaluacionesPolinizacion || []);
+    return metricas ? parseFloat(metricas.total) : 0;
+  });
+  const tieneMenorA50 = rendimientos.some(r => r < 50);
+
+  // Datos para la gráfica de barras de rendimiento global por fecha
+  const chartData = {
+    labels: historial.map(ev => formatearFecha(ev.fecha)),
+    datasets: [
+      {
+        label: 'Rendimiento Global',
+        data: historial.map(ev => {
+          const metricas = calcularMetricasPolinizacion(ev.evaluacionesPolinizacion || []);
+          return metricas ? parseFloat(metricas.total) : 0;
+        }),
+        backgroundColor: 'rgba(33, 150, 243, 0.6)',
+        borderColor: 'rgba(33, 150, 243, 1)',
+        borderWidth: 1,
+      },
+    ],
+  };
+
+  const chartOptions = {
+    responsive: true,
+    plugins: {
+      legend: { display: false },
+      title: { display: true, text: 'Rendimiento Global por Fecha' },
+    },
+    animation: {
+      duration: 2000,
+      easing: 'easeInOutQuart',
+      x: {
+        type: 'number',
+        easing: 'linear',
+        duration: 2000,
+        from: NaN,
+        delay(ctx) {
+          return ctx.index * 150;
+        }
+      },
+      y: {
+        type: 'number',
+        easing: 'linear',
+        duration: 2000,
+        from: NaN,
+        delay(ctx) {
+          return ctx.index * 150;
+        }
+      }
+    },
+    scales: {
+      y: {
+        min: tieneMenorA50 ? 0 : 50,
+        max: 110,
+        ticks: {
+          stepSize: 10,
+          callback: function(value) {
+            return value <= 100 ? value : '';
+          }
+        },
+        grace: 0
+      },
+    },
+  };
+
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', mb: 4 }}>
+    <Container maxWidth="xl" sx={{ py: { xs: 2, md: 4 } }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', mb: { xs: 2, md: 4 } }}>
         <IconButton 
           onClick={volver} 
           aria-label="volver"
           sx={{ 
-            mr: 2, 
+            mr: { xs: 1, md: 2 }, 
             color: 'text.secondary',
-            bgcolor: 'action.hover'
+            bgcolor: 'action.hover',
+            p: { xs: 1, md: 2 }
           }}
         >
           <FaArrowLeft />
         </IconButton>
-        <Typography variant="h4" component="h1" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
+        <Typography variant="h4" component="h1" sx={{ fontWeight: 'bold', color: 'primary.main', fontSize: { xs: '1.3rem', sm: '2rem' } }}>
           Hoja de Vida - {nombreOperario}
         </Typography>
       </Box>
@@ -201,134 +294,49 @@ const HistorialOperario = () => {
 
       {!loading && !error && (
         <>
-          <Card sx={{ mb: 4, overflow: 'visible' }}>
-            <Box sx={{ p: 2, bgcolor: 'grey.100', borderBottom: '1px solid', borderColor: 'divider' }}>
-              <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', fontWeight: 500 }}>
-                <FaUserAlt style={{ marginRight: '12px', color: 'primary.main' }} />
-                Resumen del Operario
-              </Typography>
+          {/* DASHBOARD CARDS */}
+          <Grid container spacing={2} sx={{ mb: 3 }}>
+            <Grid item xs={12} sm={6} md={3}>
+              <Paper elevation={2} sx={{ p: { xs: 1.5, md: 2 }, textAlign: 'center', borderRadius: 2 }}>
+                <FaTags size={28} color="#1976d2" />
+                <Typography variant="subtitle2" color="text.secondary" sx={{ mt: 1 }}>Total Evaluaciones</Typography>
+                <Typography variant="h4" sx={{ fontWeight: 'bold', color: '#1976d2' }}>{historial.length}</Typography>
+              </Paper>
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <Paper elevation={2} sx={{ p: { xs: 1.5, md: 2 }, textAlign: 'center', borderRadius: 2 }}>
+                <FaCalendarCheck size={28} color="#388e3c" />
+                <Typography variant="subtitle2" color="text.secondary" sx={{ mt: 1 }}>Última Evaluación</Typography>
+                <Typography variant="h6" sx={{ color: '#388e3c' }}>{historial.length > 0 ? formatearFecha(historial[0].fecha) : 'N/A'}</Typography>
+              </Paper>
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <Paper elevation={2} sx={{ p: { xs: 1.5, md: 2 }, textAlign: 'center', borderRadius: 2 }}>
+                <FaBuilding size={28} color="#5e35b1" />
+                <Typography variant="subtitle2" color="text.secondary" sx={{ mt: 1 }}>Finca Principal</Typography>
+                <Typography variant="h6" sx={{ color: '#5e35b1' }}>{historial.length > 0 ? historial[0]?.finca?.descripcion || 'N/A' : 'N/A'}</Typography>
+              </Paper>
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <Paper elevation={2} sx={{ p: { xs: 1.5, md: 2 }, textAlign: 'center', borderRadius: 2 }}>
+                <FaClipboardList size={28} color="#009688" />
+                <Typography variant="subtitle2" color="text.secondary" sx={{ mt: 1 }}>Sección más frecuente</Typography>
+                <Typography variant="h6" sx={{ color: '#009688' }}>{getSeccionFrecuente(historial)}</Typography>
+              </Paper>
+            </Grid>
+          </Grid>
+
+          {/* GRÁFICA DE RENDIMIENTO GLOBAL POR FECHA */}
+          <Paper elevation={2} sx={{ p: { xs: 1, md: 3 }, mb: 4, borderRadius: 2, width: '100%', overflowX: 'auto' }}>
+            <Typography variant="h6" sx={{ mb: 2, fontSize: { xs: '1rem', md: '1.25rem' }, textAlign: { xs: 'center', md: 'left' } }}>Rendimiento Global (Línea de Tiempo)</Typography>
+            <Box sx={{ width: '100%', minWidth: { xs: 220, sm: 350, md: 500 }, maxWidth: '100vw' }}>
+              <Line data={chartData} options={chartOptions} style={{ width: '100%', height: 'auto', maxWidth: '100vw' }} />
             </Box>
-            <CardContent sx={{ p: 3 }}>
-              <Grid container spacing={3} alignItems="stretch">
-                <Grid item xs={12} sm={6} md={3}>
-                  <Paper elevation={0} sx={{ p: 2, textAlign: 'center', height: '100%', border: '1px solid', borderColor: 'divider', borderRadius: 1 }}>
-                    <FaTags size={24} color="#64b5f6" />
-                    <Typography variant="subtitle2" color="text.secondary" sx={{ mt: 1, mb: 0.5 }}>
-                      Total Evaluaciones
-                    </Typography>
-                    <Typography variant="h4" sx={{ fontWeight: 'bold', color: '#1976d2' }}>
-                      {historial.length}
-                    </Typography>
-                  </Paper>
-                </Grid>
-                <Grid item xs={12} sm={6} md={3}>
-                  <Paper elevation={0} sx={{ p: 2, textAlign: 'center', height: '100%', border: '1px solid', borderColor: 'divider', borderRadius: 1 }}>
-                    <FaRegStar size={24} color="#ffb74d" />
-                    <Typography variant="subtitle2" color="text.secondary" sx={{ mt: 1, mb: 0.5 }}>
-                      Calificación Promedio
-                    </Typography>
-                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <Typography variant="h4" sx={{ fontWeight: 'bold', color: '#f57c00', mr: 0.5 }}>
-                        {historial.length > 0 
-                          ? (historial.reduce((sum, item) => sum + (item.calificacion || 0), 0) / historial.length).toFixed(1) 
-                          : 'N/A'}
-                      </Typography>
-                      {historial.length > 0 && <FaStar style={{ color: '#ffb74d', fontSize: '1.5rem' }} />}
-                    </Box>
-                  </Paper>
-                </Grid>
-                <Grid item xs={12} sm={6} md={3}>
-                  <Paper elevation={0} sx={{ p: 2, textAlign: 'center', height: '100%', border: '1px solid', borderColor: 'divider', borderRadius: 1 }}>
-                    <FaCalendarCheck size={24} color="#81c784" />
-                    <Typography variant="subtitle2" color="text.secondary" sx={{ mt: 1, mb: 0.5 }}>
-                      Última Evaluación
-                    </Typography>
-                    <Typography variant="h6" sx={{ color: '#388e3c' }}>
-                      {historial.length > 0 ? formatearFecha(historial[0].fecha) : 'N/A'}
-                    </Typography>
-                  </Paper>
-                </Grid>
-                <Grid item xs={12} sm={6} md={3}>
-                  <Paper elevation={0} sx={{ p: 2, textAlign: 'center', height: '100%', border: '1px solid', borderColor: 'divider', borderRadius: 1 }}>
-                    <FaBuilding size={24} color="#9575cd" />
-                    <Typography variant="subtitle2" color="text.secondary" sx={{ mt: 1, mb: 0.5 }}>
-                      Finca Principal (Última)
-                    </Typography>
-                    <Typography variant="h6" sx={{ color: '#5e35b1' }}>
-                      {historial.length > 0 ? historial[0]?.finca?.descripcion || 'N/A' : 'N/A'}
-                    </Typography>
-                  </Paper>
-                </Grid>
-              </Grid>
-            </CardContent>
-          </Card>
+          </Paper>
 
-          {historial.length > 0 && historial.some(evaluacion => evaluacion.evaluacionesPolinizacion?.length > 0) && (
-            <Card sx={{ mb: 4 }}>
-              <Box sx={{ p: 2, bgcolor: 'grey.100', borderBottom: '1px solid', borderColor: 'divider' }}>
-                 <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', fontWeight: 500 }}>
-                    <FaChartBar style={{ marginRight: '12px', color: 'primary.main' }} />
-                    Métricas de Polinización (Promedio Histórico)
-                  </Typography>
-              </Box>
-              <CardContent sx={{ p: 3 }}>
-                {(() => {
-                  const metricasPromedio = calcularMetricasPromedio(historial);
-                  
-                  if (!metricasPromedio) {
-                    return (
-                      <Typography variant="body1" sx={{ textAlign: 'center', p: 2, color: 'text.secondary' }}>
-                        No hay datos de métricas de polinización disponibles para este operario.
-                      </Typography>
-                    );
-                  }
-                  
-                  const metricasItems = [
-                    { label: 'Rendimiento Total', value: metricasPromedio.rendimientoTotal, maxValue: 100, color: 'success.main' },
-                    { label: 'Antesis Dejadas', value: metricasPromedio.porcentajeAntesisDejadas, maxValue: 15, color: 'error.main' },
-                    { label: 'Post Antesis Dejadas', value: metricasPromedio.porcentajePostAntesisDejadas, maxValue: 10, color: 'warning.main' },
-                    { label: 'Espate', value: metricasPromedio.porcentajeEspate, maxValue: 30, color: 'info.main' },
-                    { label: 'Aplicación', value: metricasPromedio.porcentajeAplicacion, maxValue: 30, color: 'secondary.main' },
-                    { label: 'Marcación', value: metricasPromedio.porcentajeMarcacion, maxValue: 5, color: '#673ab7' },
-                    { label: 'Repaso 1', value: metricasPromedio.porcentajeRepaso1, maxValue: 5, color: '#00bcd4' },
-                    { label: 'Repaso 2', value: metricasPromedio.porcentajeRepaso2, maxValue: 5, color: '#795548' }
-                  ];
-                  
-                  return (
-                    <Grid container spacing={3}>
-                      {metricasItems.map((item, index) => {
-                        const porcentajeBarra = Math.min((item.value / item.maxValue) * 100, 100);
-                        return (
-                          <Grid item xs={12} sm={6} md={4} key={index}>
-                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
-                              <Typography variant="body2" color="text.secondary">{item.label}</Typography>
-                              <Typography variant="body2" sx={{ fontWeight: 'bold', color: item.color }}>{item.value}%</Typography>
-                            </Box>
-                            <LinearProgress 
-                              variant="determinate" 
-                              value={porcentajeBarra}
-                              sx={{ 
-                                height: 8,
-                                borderRadius: 4,
-                                bgcolor: 'grey.200',
-                                '& .MuiLinearProgress-bar': {
-                                  backgroundColor: item.color
-                                }
-                              }}
-                            />
-                          </Grid>
-                        );
-                      })}
-                    </Grid>
-                  );
-                })()}
-              </CardContent>
-            </Card>
-          )}
-
-          <Box sx={{ mb: 2, display: 'flex', alignItems: 'center' }}>
+          <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', flexWrap: 'wrap' }}>
             <FaClipboardList style={{ marginRight: '12px', color: 'primary.main' }} />
-            <Typography variant="h5" component="h2" sx={{ fontWeight: 500 }}>
+            <Typography variant="h5" component="h2" sx={{ fontWeight: 500, fontSize: { xs: '1.1rem', md: '1.5rem' } }}>
               Historial de Evaluaciones
             </Typography>
           </Box>
@@ -340,17 +348,17 @@ const HistorialOperario = () => {
               </Typography>
             </Paper>
           ) : (
-            <TableContainer component={Paper} elevation={1} sx={{ border: '1px solid', borderColor: 'divider' }}>
-              <Table sx={{ minWidth: 650 }}>
+            <TableContainer component={Paper} elevation={1} sx={{ border: '1px solid', borderColor: 'divider', width: '100%', overflowX: 'auto', maxWidth: '100vw' }}>
+              <Table sx={{ minWidth: { xs: 400, sm: 650 }, fontSize: { xs: '0.85rem', sm: '1rem' } }}>
                 <TableHead sx={{ bgcolor: 'grey.100' }}>
                   <TableRow>
-                    <TableCell sx={{ fontWeight: 'bold', py: 1 }}>Fecha</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', py: 1 }}>Finca</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', py: 1 }}>Lote</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', py: 1 }}>Sección</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', py: 1 }}>Evaluador</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', py: 1 }} align="center">Calificación</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', py: 1 }}>Observaciones</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', py: { xs: 0.5, sm: 1 }, fontSize: { xs: '0.85rem', sm: '1rem' } }}>Fecha</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', py: { xs: 0.5, sm: 1 }, fontSize: { xs: '0.85rem', sm: '1rem' } }}>Finca</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', py: { xs: 0.5, sm: 1 }, fontSize: { xs: '0.85rem', sm: '1rem' } }}>Lote</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', py: { xs: 0.5, sm: 1 }, fontSize: { xs: '0.85rem', sm: '1rem' } }}>Sección</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', py: { xs: 0.5, sm: 1 }, fontSize: { xs: '0.85rem', sm: '1rem' } }}>Evaluador</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', py: { xs: 0.5, sm: 1 }, fontSize: { xs: '0.85rem', sm: '1rem' } }}>Rendimiento Global</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', py: { xs: 0.5, sm: 1 }, fontSize: { xs: '0.85rem', sm: '1rem' } }}>Observaciones</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -362,35 +370,32 @@ const HistorialOperario = () => {
                         '&:last-child td, &:last-child th': { border: 0 }
                       }}
                     >
-                      <TableCell sx={{ py: 1 }}>
+                      <TableCell sx={{ py: { xs: 0.5, sm: 1 } }}>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                           <FaCalendarAlt style={{ color: 'grey.500' }} />
                           {formatearFecha(evaluacion.fecha)}
                         </Box>
                       </TableCell>
-                      <TableCell sx={{ py: 1 }}>
+                      <TableCell sx={{ py: { xs: 0.5, sm: 1 } }}>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                           <FaMapMarkerAlt style={{ color: 'grey.500' }} />
                           {evaluacion.finca?.descripcion || 'N/A'}
                         </Box>
                       </TableCell>
-                      <TableCell sx={{ py: 1 }}>
+                      <TableCell sx={{ py: { xs: 0.5, sm: 1 } }}>
                         {evaluacion.lote?.descripcion || 'N/A'}
                       </TableCell>
-                      <TableCell sx={{ py: 1 }}>{evaluacion.seccion || 'N/A'}</TableCell>
-                      <TableCell sx={{ py: 1 }}>
+                      <TableCell sx={{ py: { xs: 0.5, sm: 1 } }}>{getSeccion(evaluacion) || 'N/A'}</TableCell>
+                      <TableCell sx={{ py: { xs: 0.5, sm: 1 } }}>
                         {evaluacion.evaluador?.nombre || 'N/A'}
                       </TableCell>
-                      <TableCell sx={{ py: 1 }} align="center">
-                        <Rating 
-                          value={evaluacion.calificacion || 0} 
-                          readOnly 
-                          precision={0.5}
-                          size="small"
-                          sx={{ verticalAlign: 'middle' }}
-                        />
+                      <TableCell sx={{ py: { xs: 0.5, sm: 1 } }}>
+                        {(() => {
+                          const metricas = calcularMetricasPolinizacion(evaluacion.evaluacionesPolinizacion || []);
+                          return metricas ? metricas.total + '%' : 'N/A';
+                        })()}
                       </TableCell>
-                      <TableCell sx={{ py: 1 }}>{evaluacion.observaciones || '-'}</TableCell>
+                      <TableCell sx={{ py: { xs: 0.5, sm: 1 } }}>{evaluacion.observaciones || '-'}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
