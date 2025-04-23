@@ -97,56 +97,81 @@ const fincaService = {
   },
 
   // Obtener historial de evaluaciones de un operario
-  getHistorialOperario: async (nombreOperario) => {
+  getHistorialOperario: async (operarioId) => {
+    // Verificar si el ID es válido antes de llamar a la API
+    if (!operarioId || isNaN(parseInt(operarioId))) {
+      console.error('ID de operario inválido recibido en getHistorialOperario:', operarioId);
+      // Devolver estructura estándar en caso de ID inválido
+      return { 
+        evaluaciones: [], 
+        mensaje: 'ID de operario inválido proporcionado.', 
+        usandoDatosEjemplo: true // Tratar como si la API fallara
+      };
+    }
+
     try {
-      const response = await api.get(`/evaluaciones-operario?nombre=${encodeURIComponent(nombreOperario)}`);
-      return response.data || { evaluaciones: [], mensaje: '' };
-    } catch (error) {
-      console.error('Error obteniendo historial del operario:', error);
+      console.log(`Intentando obtener historial para ID: ${operarioId} usando /evaluaciones-generales/operario/`);
+      // Modificación aquí: Usar operarioId (numérico) en la URL
+      const response = await api.get(`/evaluaciones-generales/operario/${operarioId}`); 
       
-      // Generar datos de ejemplo para mostrar la interfaz
+      // Estandarizar la respuesta al formato objeto
+      return {
+        evaluaciones: response.data || [],
+        mensaje: '',
+        usandoDatosEjemplo: false 
+      };
+
+    } catch (error) {
+      console.error(`Error obteniendo historial del operario con ID: ${operarioId}`, error);
+      
+      // --- El bloque CATCH para generar datos de ejemplo se mantiene igual que la última vez --- 
       const evaluacionesEjemplo = [];
       const fechasAleatorias = [];
-      
-      // Generar fechas aleatorias de los últimos 6 meses
       const hoy = new Date();
       for (let i = 0; i < 10; i++) {
         const fecha = new Date(hoy);
-        fecha.setDate(hoy.getDate() - Math.floor(Math.random() * 180)); // Últimos 6 meses
+        fecha.setDate(hoy.getDate() - Math.floor(Math.random() * 180));
         const dia = fecha.getDate().toString().padStart(2, '0');
         const mes = (fecha.getMonth() + 1).toString().padStart(2, '0');
         const año = fecha.getFullYear();
         fechasAleatorias.push(`${dia}/${mes}/${año}`);
       }
-      
-      // Ordenar fechas de más reciente a más antigua
       fechasAleatorias.sort((a, b) => {
         const [diaA, mesA, añoA] = a.split('/').map(Number);
         const [diaB, mesB, añoB] = b.split('/').map(Number);
-        
         if (añoA !== añoB) return añoB - añoA;
         if (mesA !== mesB) return mesB - mesA;
         return diaB - diaA;
       });
-      
-      // Generar evaluaciones de ejemplo
+
       for (let i = 0; i < 10; i++) {
+        const evaluacionesPolinizacion = [];
+        const numEvaluacionesPolinizacion = Math.floor(Math.random() * 3) + 1;
+        for (let j = 0; j < numEvaluacionesPolinizacion; j++) {
+          evaluacionesPolinizacion.push({
+            id: `${i+1}-${j+1}`, fecha: fechasAleatorias[i], seccion: `S-${Math.floor(Math.random() * 5) + 1}`,
+            palma: `P-${Math.floor(Math.random() * 100) + 1}`, inflorescencia: Math.floor(Math.random() * 10) + 1,
+            antesis: Math.floor(Math.random() * 15), antesisDejadas: Math.floor(Math.random() * 15),
+            postantesis: Math.floor(Math.random() * 20), postantesisDejadas: Math.floor(Math.random() * 10),
+            espate: Math.floor(Math.random() * 30), aplicacion: Math.floor(Math.random() * 30),
+            marcacion: Math.floor(Math.random() * 5), repaso1: Math.floor(Math.random() * 5),
+            repaso2: Math.floor(Math.random() * 5)
+          });
+        }
         evaluacionesEjemplo.push({
-          id: i + 1,
-          fecha: fechasAleatorias[i],
-          finca: `Finca ${String.fromCharCode(65 + Math.floor(Math.random() * 4))}`, // A, B, C o D
-          lote: `Lote ${Math.floor(Math.random() * 10) + 1}`,
-          seccion: `Sección ${Math.floor(Math.random() * 5) + 1}`,
-          evaluador: `Evaluador ${Math.floor(Math.random() * 3) + 1}`,
-          calificacion: Math.floor(Math.random() * 5) + 1, // Calificación 1-5
-          observaciones: `Observación de ejemplo #${i + 1}`,
-          polinizador: nombreOperario
+          id: i + 1, fecha: fechasAleatorias[i], finca: `Finca ${String.fromCharCode(65 + Math.floor(Math.random() * 4))}`,
+          lote: `Lote ${Math.floor(Math.random() * 10) + 1}`, seccion: `Sección ${Math.floor(Math.random() * 5) + 1}`,
+          evaluador: `Evaluador ${Math.floor(Math.random() * 3) + 1}`, calificacion: Math.floor(Math.random() * 5) + 1,
+          observaciones: `Observación de ejemplo #${i + 1}`, polinizador: `OperarioEjemplo (ID: ${operarioId})`, // Actualizar nombre de ejemplo si se desea
+          evaluacionesPolinizacion: evaluacionesPolinizacion 
         });
       }
       
+      // Estandarizar la respuesta de error
       return { 
         evaluaciones: evaluacionesEjemplo, 
-        mensaje: 'Error al conectar con la API. Mostrando datos de ejemplo.' 
+        mensaje: 'Error al conectar con la API. Mostrando datos de ejemplo.',
+        usandoDatosEjemplo: true 
       };
     }
   }

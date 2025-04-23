@@ -234,11 +234,13 @@ const FincaDetail = () => {
         console.log('Reconstruyendo operarios desde todas las evaluaciones', todasLasEvaluaciones.length);
         const todosOperarios = {};
         todasLasEvaluaciones.forEach(ev => {
-          if (ev.polinizador && ev.polinizador !== 'N/A') {
-            if (!todosOperarios[ev.polinizador]) {
-              todosOperarios[ev.polinizador] = [];
+          // Usar el nombre del polinizador como clave
+          const nombrePolinizador = ev.polinizador?.nombre || 'N/A';
+          if (nombrePolinizador !== 'N/A') { 
+            if (!todosOperarios[nombrePolinizador]) {
+              todosOperarios[nombrePolinizador] = [];
             }
-            todosOperarios[ev.polinizador].push(ev);
+            todosOperarios[nombrePolinizador].push(ev);
           }
         });
         
@@ -252,31 +254,24 @@ const FincaDetail = () => {
       if (evaluacionesPorFecha[fecha]) {
         console.log(`FincaDetail - Fecha seleccionada encontrada: ${fecha}`, evaluacionesPorFecha[fecha]);
         
-        // Verificar si necesitamos filtrar los operarios o tenemos ya la estructura preparada
-        if (evaluacionesPorFecha[fecha].operarios) {
-          // Si ya hay una estructura de operarios pre-calculada
-          console.log('Usando operarios pre-calculados para esta fecha');
-          setEvaluacionesPorOperario(evaluacionesPorFecha[fecha].operarios);
-        } else {
-          // Filtrar operarios para esta fecha desde todas las evaluaciones
-          console.log('Filtrando operarios para la fecha seleccionada');
-          const evaluacionesDeFecha = todasLasEvaluaciones.filter(ev => ev.fecha === fecha);
-          console.log(`Evaluaciones para fecha ${fecha}:`, evaluacionesDeFecha.length);
+        // Filtrar operarios para esta fecha desde las evaluaciones de esa fecha
+        console.log('Filtrando operarios para la fecha seleccionada');
+        const evaluacionesDeFecha = evaluacionesPorFecha[fecha];
+        const operariosFiltrados = {};
+        evaluacionesDeFecha.forEach(ev => {
+           // Usar el nombre del polinizador como clave
+           const nombrePolinizador = ev.polinizador?.nombre || 'N/A';
+           if (nombrePolinizador !== 'N/A') {
+             if (!operariosFiltrados[nombrePolinizador]) {
+               operariosFiltrados[nombrePolinizador] = [];
+             }
+             operariosFiltrados[nombrePolinizador].push(ev);
+           }
+        });
           
-          // Para cada evaluación de esta fecha, agrupamos por operario
-          const operariosFiltrados = {};
-          evaluacionesDeFecha.forEach(ev => {
-            if (ev.polinizador && ev.polinizador !== 'N/A') {
-              if (!operariosFiltrados[ev.polinizador]) {
-                operariosFiltrados[ev.polinizador] = [];
-              }
-              operariosFiltrados[ev.polinizador].push(ev);
-            }
-          });
-          
-          console.log('Operarios filtrados para esta fecha:', Object.keys(operariosFiltrados));
-          setEvaluacionesPorOperario(operariosFiltrados);
-        }
+        console.log('Operarios filtrados para esta fecha:', Object.keys(operariosFiltrados));
+        setEvaluacionesPorOperario(operariosFiltrados);
+        
       } else {
         console.warn(`FincaDetail - No hay datos para la fecha ${fecha}`);
         setEvaluacionesPorOperario({});
@@ -321,7 +316,7 @@ const FincaDetail = () => {
 
   // Función para seleccionar una evaluación específica por su ID
   const selectEvaluacion = (evaluacion) => {
-    console.log('Seleccionando evaluación específica:', evaluacion.id);
+    console.log('Datos COMPLETOS de la evaluación seleccionada:', evaluacion); // <--- AÑADE ESTA LÍNEA
     setSelectedEvaluation(evaluacion);
   };
   
@@ -395,7 +390,8 @@ const FincaDetail = () => {
             'Repaso 1': evaluacion.repaso1 || '0',
             'Repaso 2': evaluacion.repaso2 || '0',
             'Observaciones': evaluacion.observaciones || '-',
-            'Evaluador': selectedEvaluation.evaluador || selectedEvaluation.polinizador || '',
+            // Usar el nombre del polinizador como fallback para evaluador si es necesario
+            'Evaluador': selectedEvaluation.evaluador || selectedEvaluation.polinizador?.nombre || '',
             'Foto URL': selectedEvaluation.fotopach || '',
             'Firma URL': selectedEvaluation.firmapach || ''
           };
@@ -436,7 +432,8 @@ const FincaDetail = () => {
           'Repaso 1': selectedEvaluation.repaso1 || '0',
           'Repaso 2': selectedEvaluation.repaso2 || '0',
           'Observaciones': selectedEvaluation.observaciones || '-',
-          'Evaluador': selectedEvaluation.evaluador || selectedEvaluation.polinizador || '',
+          // Usar el nombre del polinizador como fallback para evaluador si es necesario
+          'Evaluador': selectedEvaluation.evaluador || selectedEvaluation.polinizador?.nombre || '',
           'Foto URL': selectedEvaluation.fotopach || '',
           'Firma URL': selectedEvaluation.firmapach || ''
         });
@@ -700,7 +697,8 @@ const FincaDetail = () => {
                                   variant="h4" 
                                   sx={styles.overlayText}
                                 >
-                                  {selectedEvaluation?.polinizador || 'Sin nombre'}
+                                  {/* Mostrar nombre del polinizador */}
+                                  {selectedEvaluation?.polinizador?.nombre || 'Sin nombre'}
                                 </OverlayText>
                               </PhotoOverlay>
                             </PhotoContainer>
@@ -772,20 +770,24 @@ const FincaDetail = () => {
                               
                               <Typography variant="subtitle2" color="text.secondary" sx={{ mt: 1 }}>Polinizador</Typography>
                               <Typography variant="body1" sx={{ fontWeight: 'medium', display: 'flex', alignItems: 'center' }}>
-                                {selectedEvaluation?.polinizador || 'No especificado'}
-                                {selectedEvaluation?.polinizador && selectedEvaluation.polinizador !== 'No especificado' && (
+                                {/* Corrección: Mostrar solo el nombre o 'No especificado' */}
+                                {selectedEvaluation?.polinizador?.nombre || 'No especificado'}
+
+                                {/* Condición para mostrar el botón - Verifica si existe el ID */}
+                                {selectedEvaluation?.polinizador?.id && selectedEvaluation?.polinizador?.nombre && selectedEvaluation.polinizador.nombre !== 'No especificado' && (
                                   <Button
                                     variant="contained"
                                     size="small"
                                     color="primary"
-                                    sx={{ 
-                                      ml: 1, 
-                                      minWidth: 'auto', 
+                                    sx={{
+                                      ml: 1,
+                                      minWidth: 'auto',
                                       padding: '2px 8px',
                                       backgroundColor: '#2e7d32',
                                       '&:hover': { backgroundColor: '#1b5e20' }
                                     }}
-                                    onClick={() => navigate(`/operario/${encodeURIComponent(selectedEvaluation.polinizador)}`)}
+                                    // Navegación actualizada para usar solo el ID
+                                    onClick={() => navigate(`/operarios/${selectedEvaluation.polinizador.id}`)}
                                   >
                                     Hoja de vida
                                   </Button>
